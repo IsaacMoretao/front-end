@@ -18,7 +18,7 @@ export function Sala3a5() {
 
   const fetchChildren = async () => {
     try {
-      const response = await fetch('http://localhost:3333/children/filterByAge?minAge=3&maxAge=5');
+      const response = await fetch('https://backend-kids.onrender.com/children/filterByAge?minAge=3&maxAge=5');
       const data = await response.json();
       setChildren(data);
     } catch (error) {
