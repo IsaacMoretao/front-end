@@ -123,22 +123,31 @@ export function Sala6a8() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {children.map((child) => (
-              <TableRow key={child.id} className="bg-white py-10">
-                <TableCell align="center">{child.nome}</TableCell>
-                <TableCell align="center">{child.idade}</TableCell>
-                <TableCell align="center">{child.pontos}</TableCell>
-                <TableCell align="center">
-                  <div className="flex justify-center gap-2">
-                    <Button variant="contained" color="primary" onClick={() => addPoints(child.id, 1)}>+1</Button>
-                    <Button variant="contained" color="primary" onClick={() => addPoints(child.id, 2)}>+2</Button>
-                    <Button variant="contained" color="primary" onClick={() => addPoints(child.id, 3)}>+3</Button>
-                    <Button variant="contained" color="primary" onClick={() => addPoints(child.id, 4)}>+4</Button>
-
-                  </div>
+            {children.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={4} align="center">
+                  Não foi encontrada nenhuma criança.
                 </TableCell>
-              </TableRow> 
-            ))}
+              </TableRow>
+            ) : (
+
+              children.map((child) => (
+                
+                <TableRow key={child.id} className="bg-white py-10">
+                  <TableCell align="center">{child.nome}</TableCell>
+                  <TableCell align="center">{child.idade}</TableCell>
+                  <TableCell align="center">{child.pontos}</TableCell>
+                  <TableCell align="center">
+                    <div className="flex justify-center gap-2">
+                      <Button variant="contained" color="primary" onClick={() => addPoints(child.id, 1)}>+1</Button>
+                      <Button variant="contained" color="primary" onClick={() => addPoints(child.id, 2)}>+2</Button>
+                      <Button variant="contained" color="primary" onClick={() => addPoints(child.id, 3)}>+3</Button>
+                      <Button variant="contained" color="primary" onClick={() => addPoints(child.id, 4)}>+4</Button>
+                    </div>
+                  </TableCell>
+                </TableRow> 
+              ))
+            )}
           </TableBody>
         </Table>
       </TableContainer>
