@@ -27,6 +27,18 @@ export function Home() {
             Faixa Etária 9-11
           </Link>
         </div>
+
+        <div className="bg-yellow-500 p-4 rounded-md w-full md:w-[300px] hover:bg-yellow-600">
+          <Link to="/sala-9-11" className="text-2xl text-center block text-white">
+            Faixa Etária 4-7
+          </Link>
+        </div>
+
+        <div className="bg-orange-500 p-4 rounded-md w-full md:w-[300px] hover:bg-orange-600">
+          <Link to="/sala-9-11" className="text-2xl text-center block text-white">
+            Faixa Etária 4-7
+          </Link>
+        </div>
       </div>
     </div>
   );

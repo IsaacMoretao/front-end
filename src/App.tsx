@@ -25,6 +25,10 @@ function App() {
         <Route path="/sala-9-11" element={<Class minAge={9} maxAge={11} />} />
         <Route path="/sala-6-8" element={<Class minAge={6} maxAge={8} />} />
         <Route path="/sala-3-5" element={<Class minAge={3} maxAge={5} />} />
+
+        <Route path="/sala-8-11" element={<Class minAge={8} maxAge={11} />} />
+        <Route path="/sala-4-7" element={<Class minAge={4} maxAge={7} />} />
+        
         <Route path="/" element={<Home />} />
       </Routes>
     </Router>
