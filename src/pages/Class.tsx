@@ -11,16 +11,30 @@ interface Child {
   pontos: number;
 }
 
-export function Sala6a8() {
+interface Period {
+  minAge: number;
+  maxAge: number;
+}
+
+type ClickedCountState = {
+  [key: number]: number;
+}
+
+export function Class( props:Period ){
   const [children, setChildren] = useState<Child[]>([]);
   const [open, setOpen] = useState(false);
   const [newChild, setNewChild] = useState<Child>({ id: 0, nome: '', idade: 0, pontos: 0 });
   const [searchTerm, setSearchTerm] = useState<string>('');
+  const [clickedCount, setClickedCount] = useState<ClickedCountState>({});
+
 
   const fetchChildren = async () => {
     try {
-      const response = await fetch('https://backend-kids.onrender.com/children/filterByAge?minAge=6&maxAge=8');
+      const response = await fetch(`https://backend-kids.onrender.com/children/filterByAge?minAge=${props.minAge}&maxAge=${props.maxAge}`);
       const data = await response.json();
+      
+      data.sort((a: Child, b: Child) => a.nome.localeCompare(b.nome));
+      
       setChildren(data);
     } catch (error) {
       console.error('Erro ao buscar crianças:', error);
@@ -60,32 +74,44 @@ export function Sala6a8() {
     }
   };
 
-  const addPoints = async (childId: number, pointsToAdd: number) => {
-    try {
-      const response = await fetch(`https://backend-kids.onrender.com/children/${childId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          pontos: pointsToAdd,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Erro ao adicionar pontos');
-      }
-
-      // Atualiza o estado local após a chamada API bem-sucedida
-      setChildren(prevChildren =>
-        prevChildren.map(child =>
-          child.id === childId ? { ...child, pontos: child.pontos + pointsToAdd } : child
-        )
-      );
-    } catch (error) {
-      console.error('Erro ao adicionar pontos:', error);
+const addPoints = async (childId: number, pointsToAdd: number) => {
+  try {
+    // Verifica se a criança já clicou 4 vezes
+    if (clickedCount[childId] && clickedCount[childId] >= 4) {
+      return; // Sai da função sem fazer nada se já tiver clicado 4 vezes
     }
-  };
+
+    const response = await fetch(`https://backend-kids.onrender.com/children/${childId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        pontos: pointsToAdd,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Erro ao adicionar pontos');
+    }
+
+    // Atualiza o estado local após a chamada API bem-sucedida
+    setChildren(prevChildren =>
+      prevChildren.map(child =>
+        child.id === childId ? { ...child, pontos: child.pontos + pointsToAdd } : child
+      )
+    );
+
+    // Atualiza o contador de cliques para a criança
+    setClickedCount(prevClickedCount => ({
+      ...prevClickedCount,
+      [childId]: (prevClickedCount[childId] || 0) + 1,
+    }));
+
+  } catch (error) {
+    console.error('Erro ao adicionar pontos:', error);
+  }
+};
 
   const exportPDF = () => {
     const doc = new jsPDF() as any;
@@ -99,7 +125,7 @@ export function Sala6a8() {
 
   return (
     <Paper className="container mx-auto px-4">
-      <h1 className="text-3xl text-black font-bold text-center my-8">Sala 6 a 8</h1>
+      <h1 className="text-3xl text-black font-bold text-center my-8">Sala {props.minAge} a {props.maxAge}</h1>
 
       <TextField
         label="Buscar por nome"
@@ -149,10 +175,13 @@ export function Sala6a8() {
                   <TableCell align="center">{child.pontos}</TableCell>
                   <TableCell align="center">
                     <div className="flex justify-center gap-2">
-                      <Button variant="contained" color="primary" onClick={() => addPoints(child.id, 1)}>+1</Button>
-                      <Button variant="contained" color="primary" onClick={() => addPoints(child.id, 2)}>+2</Button>
-                      <Button variant="contained" color="primary" onClick={() => addPoints(child.id, 3)}>+3</Button>
-                      <Button variant="contained" color="primary" onClick={() => addPoints(child.id, 4)}>+4</Button>
+                      <Button 
+                        variant="contained" 
+                        className={`points${clickedCount[child.id] || 0}`} 
+                        disabled={clickedCount[child.id] >= 4}
+                        onClick={() => addPoints(child.id, 1)}
+                      >+1</Button>
+                      <Button variant="contained" color="error" onClick={() => addPoints(child.id, (-1))}>-1</Button>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -224,5 +253,5 @@ export function Sala6a8() {
         </DialogActions>
       </Dialog>
     </Paper>
-  );
+  )
 }

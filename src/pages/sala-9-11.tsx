@@ -11,15 +11,25 @@ interface Child {
   pontos: number;
 }
 
+type ClickedCountState = {
+  [key: number]: number;
+}
+
 export function Sala9a11() {
   const [children, setChildren] = useState<Child[]>([]);
   const [open, setOpen] = useState(false);
   const [newChild, setNewChild] = useState<Child>({ id: 0, nome: '', idade: 0, pontos: 0 });
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [clickedCount, setClickedCount] = useState<ClickedCountState>({});
+
 
   const fetchChildren = async () => {
     try {
       const response = await fetch('https://backend-kids.onrender.com/children/filterByAge?minAge=9&maxAge=11');
       const data = await response.json();
+      
+      data.sort((a: Child, b: Child) => a.nome.localeCompare(b.nome));
+      
       setChildren(data);
     } catch (error) {
       console.error('Erro ao buscar crianças:', error);
@@ -59,32 +69,44 @@ export function Sala9a11() {
     }
   };
 
-  const addPoints = async (childId: number, pointsToAdd: number) => {
-    try {
-      const response = await fetch(`https://backend-kids.onrender.com/children/${childId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          pontos: pointsToAdd,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Erro ao adicionar pontos');
-      }
-
-      // Atualiza o estado local após a chamada API bem-sucedida
-      setChildren(prevChildren =>
-        prevChildren.map(child =>
-          child.id === childId ? { ...child, pontos: child.pontos + pointsToAdd } : child
-        )
-      );
-    } catch (error) {
-      console.error('Erro ao adicionar pontos:', error);
+const addPoints = async (childId: number, pointsToAdd: number) => {
+  try {
+    // Verifica se a criança já clicou 4 vezes
+    if (clickedCount[childId] && clickedCount[childId] >= 4) {
+      return; // Sai da função sem fazer nada se já tiver clicado 4 vezes
     }
-  };
+
+    const response = await fetch(`https://backend-kids.onrender.com/children/${childId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        pontos: pointsToAdd,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Erro ao adicionar pontos');
+    }
+
+    // Atualiza o estado local após a chamada API bem-sucedida
+    setChildren(prevChildren =>
+      prevChildren.map(child =>
+        child.id === childId ? { ...child, pontos: child.pontos + pointsToAdd } : child
+      )
+    );
+
+    // Atualiza o contador de cliques para a criança
+    setClickedCount(prevClickedCount => ({
+      ...prevClickedCount,
+      [childId]: (prevClickedCount[childId] || 0) + 1,
+    }));
+
+  } catch (error) {
+    console.error('Erro ao adicionar pontos:', error);
+  }
+};
 
   const exportPDF = () => {
     const doc = new jsPDF() as any;
@@ -92,29 +114,40 @@ export function Sala9a11() {
     doc.save('table.pdf');
   };
 
+  const filteredChildren = children.filter(child =>
+    child.nome.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <Paper className="container mx-auto px-4">
       <h1 className="text-3xl text-black font-bold text-center my-8">Sala 9 a 11</h1>
 
-      <TableContainer className="my-4">
+      <TextField
+        label="Buscar por nome"
+        variant="outlined"
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        fullWidth
+        margin="normal"
+      />
+
+<TableContainer className="my-4">
         <Table>
           <TableHead className='bg-gray-200 w-full'>
-          <TableRow className="text-gray-600 uppercase text-sm leading-normal">
-
-            <TableCell align="center">
-              <Button variant="contained" startIcon={<AddCircleOutline />} color="primary" className="mt-4 w-full sm:w-auto" onClick={handleOpen}>
-                Adicionar Criança
-              </Button>
-            </TableCell>
-            <TableCell align="center">
-              <Button variant="contained" color="secondary" className="mt-4 w-full sm:w-auto" onClick={exportPDF}>
-                Baixar Excel
-              </Button>
-            </TableCell>
-            <TableCell/>
-            <TableCell/> 
-
-          </TableRow>
+            <TableRow className="text-gray-600 uppercase text-sm leading-normal">
+              <TableCell align="center">
+                <Button variant="contained" startIcon={<AddCircleOutline />} color="primary" className="mt-4 w-full sm:w-auto" onClick={handleOpen}>
+                  Adicionar Criança
+                </Button>
+              </TableCell>
+              <TableCell align="center">
+                <Button variant="contained" color="secondary" className="mt-4 w-full sm:w-auto" onClick={exportPDF}>
+                  Baixar Excel
+                </Button>
+              </TableCell>
+              <TableCell />
+              <TableCell />
+            </TableRow>
             <TableRow className="text-gray-600 uppercase text-sm leading-normal">
               <TableCell align="center">Nome</TableCell>
               <TableCell align="center">Idade</TableCell>
@@ -123,29 +156,30 @@ export function Sala9a11() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {children.length === 0 ? (
+            {filteredChildren.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={4} align="center">
                   Não foi encontrada nenhuma criança.
                 </TableCell>
               </TableRow>
             ) : (
-
-              children.map((child) => (
-                
+              filteredChildren.map((child) => (
                 <TableRow key={child.id} className="bg-white py-10">
                   <TableCell align="center">{child.nome}</TableCell>
                   <TableCell align="center">{child.idade}</TableCell>
                   <TableCell align="center">{child.pontos}</TableCell>
                   <TableCell align="center">
                     <div className="flex justify-center gap-2">
-                      <Button variant="contained" color="primary" onClick={() => addPoints(child.id, 1)}>+1</Button>
-                      <Button variant="contained" color="primary" onClick={() => addPoints(child.id, 2)}>+2</Button>
-                      <Button variant="contained" color="primary" onClick={() => addPoints(child.id, 3)}>+3</Button>
-                      <Button variant="contained" color="primary" onClick={() => addPoints(child.id, 4)}>+4</Button>
+                      <Button 
+                        variant="contained" 
+                        className={`points${clickedCount[child.id] || 0}`} 
+                        disabled={clickedCount[child.id] >= 4}
+                        onClick={() => addPoints(child.id, 1)}
+                      >+1</Button>
+                      <Button variant="contained" color="error" onClick={() => addPoints(child.id, (-1))}>-1</Button>
                     </div>
                   </TableCell>
-                </TableRow> 
+                </TableRow>
               ))
             )}
           </TableBody>

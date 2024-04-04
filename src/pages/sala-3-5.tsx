@@ -15,6 +15,7 @@ export function Sala3a5() {
   const [children, setChildren] = useState<Child[]>([]);
   const [open, setOpen] = useState(false);
   const [newChild, setNewChild] = useState<Child>({ id: 0, nome: '', idade: 0, pontos: 0 });
+  const [searchTerm, setSearchTerm] = useState<string>('');
 
   const fetchChildren = async () => {
     try {
@@ -92,29 +93,39 @@ export function Sala3a5() {
     doc.save('table.pdf');
   };
 
+  const filteredChildren = children.filter(child =>
+    child.nome.toLowerCase().includes(searchTerm.toLowerCase())
+  );
   return (
     <Paper className="container mx-auto px-4">
       <h1 className="text-3xl text-black font-bold text-center my-8">Sala 3 a 5</h1>
 
+      <TextField
+        label="Buscar por nome"
+        variant="outlined"
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        fullWidth
+        margin="normal"
+      />
+
       <TableContainer className="my-4">
         <Table>
           <TableHead className='bg-gray-200 w-full'>
-          <TableRow className="text-gray-600 uppercase text-sm leading-normal">
-
-            <TableCell align="center">
-              <Button variant="contained" startIcon={<AddCircleOutline />} color="primary" className="mt-4 w-full sm:w-auto" onClick={handleOpen}>
-                Adicionar Criança
-              </Button>
-            </TableCell>
-            <TableCell align="center">
-              <Button variant="contained" color="secondary" className="mt-4 w-full sm:w-auto" onClick={exportPDF}>
-                Baixar Excel
-              </Button>
-            </TableCell>
-            <TableCell/>
-            <TableCell/> 
-
-          </TableRow>
+            <TableRow className="text-gray-600 uppercase text-sm leading-normal">
+              <TableCell align="center">
+                <Button variant="contained" startIcon={<AddCircleOutline />} color="primary" className="mt-4 w-full sm:w-auto" onClick={handleOpen}>
+                  Adicionar Criança
+                </Button>
+              </TableCell>
+              <TableCell align="center">
+                <Button variant="contained" color="secondary" className="mt-4 w-full sm:w-auto" onClick={exportPDF}>
+                  Baixar Excel
+                </Button>
+              </TableCell>
+              <TableCell />
+              <TableCell />
+            </TableRow>
             <TableRow className="text-gray-600 uppercase text-sm leading-normal">
               <TableCell align="center">Nome</TableCell>
               <TableCell align="center">Idade</TableCell>
@@ -123,16 +134,14 @@ export function Sala3a5() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {children.length === 0 ? (
+            {filteredChildren.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={4} align="center">
                   Não foi encontrada nenhuma criança.
                 </TableCell>
               </TableRow>
             ) : (
-
-              children.map((child) => (
-                
+              filteredChildren.map((child) => (
                 <TableRow key={child.id} className="bg-white py-10">
                   <TableCell align="center">{child.nome}</TableCell>
                   <TableCell align="center">{child.idade}</TableCell>
@@ -145,7 +154,7 @@ export function Sala3a5() {
                       <Button variant="contained" color="primary" onClick={() => addPoints(child.id, 4)}>+4</Button>
                     </div>
                   </TableCell>
-                </TableRow> 
+                </TableRow>
               ))
             )}
           </TableBody>

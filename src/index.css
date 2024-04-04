@@ -7,6 +7,22 @@ body {
   overflow-x: hidden;
 }
 
+.points0 {
+  background-color: #2196F3; /* Azul */
+}
+
+.points1 {
+  background-color: #1976D2; /* Azul escuro */
+}
+
+.points2 {
+  background-color: #0D47A1; /* Azul mais escuro */
+}
+
+.points3 {
+  background-color: #01579B; /* Azul ainda mais escuro */
+}
+
 @media (max-width: 315px) {
   form {
     max-width: 315px;
