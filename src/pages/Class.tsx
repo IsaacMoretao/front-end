@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import { api } from '../lib/axios';
 import {
   Button,
   Dialog,
@@ -35,7 +36,7 @@ type ClickedCountState = {
   [key: number]: number;
 }
 
-export function Class( props:Period ){
+export function Class(props: Period) {
   const [children, setChildren] = useState<Child[]>([]);
   const [open, setOpen] = useState(false);
   const [newChild, setNewChild] = useState<Child>({ id: 0, nome: '', idade: 0, pontos: 0 });
@@ -46,11 +47,11 @@ export function Class( props:Period ){
 
   const fetchChildren = async () => {
     try {
-      const response = await fetch(`https://backend-kids.onrender.com/children/filterByAge?minAge=${props.minAge}&maxAge=${props.maxAge}`);
-      const data = await response.json();
-      
+      const response = await api.get(`/children/filterByAge?minAge=${props.minAge}&maxAge=${props.maxAge}`);
+      const data = response.data;
+
       data.sort((a: Child, b: Child) => a.nome.localeCompare(b.nome));
-      
+
       setChildren(data);
     } catch (error) {
       console.error('Erro ao buscar crianças:', error);
@@ -78,72 +79,52 @@ export function Class( props:Period ){
 
   const handleSubmit = async () => {
     try {
-      setIsCreating(true); // Defina isCreating como true ao iniciar a criação da criança
+      setIsCreating(true);
 
-      // Verificar se a criança já existe na lista pelo nome
       const existingChild = children.find(child => child.nome === newChild.nome);
       if (existingChild) {
         throw new Error('Esta criança já existe.');
       }
 
-      // Se a criança não existir, adicione-a
-      const response = await fetch('https://backend-kids.onrender.com/children', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(newChild),
-      });
-      const data: Child = await response.json();
+      const response = await api.post('/children', newChild);
+      const data: Child = response.data;
       setChildren([...children, data]);
       handleClose();
     } catch (error: any) {
       console.error('Erro ao inserir criança:', error.message);
-      // Exibir mensagem de erro ao usuário
       alert(error.message);
     } finally {
-      setIsCreating(false); // Defina isCreating como false após a operação de criação, independentemente de ser bem-sucedida ou não
+      setIsCreating(false);
     }
   };
 
-const addPoints = async (childId: number, pointsToAdd: number) => {
-  try {
-    // Verifica se a criança já clicou 4 vezes
-    if (clickedCount[childId] && clickedCount[childId] >= 4) {
-      return; // Sai da função sem fazer nada se já tiver clicado 4 vezes
+  const addPoints = async (childId: number, pointsToAdd: number) => {
+    try {
+      if (clickedCount[childId] && clickedCount[childId] >= 4) {
+        return;
+      }
+
+      const response = await api.put(`/children/${childId}`, { pontos: pointsToAdd });
+
+      if (response.status !== 200) {
+        throw new Error('Erro ao adicionar pontos');
+      }
+
+      setChildren(prevChildren =>
+        prevChildren.map(child =>
+          child.id === childId ? { ...child, pontos: child.pontos + pointsToAdd } : child
+        )
+      );
+
+      setClickedCount(prevClickedCount => ({
+        ...prevClickedCount,
+        [childId]: (prevClickedCount[childId] || 0) + 1,
+      }));
+
+    } catch (error) {
+      console.error('Erro ao adicionar pontos:', error);
     }
-
-    const response = await fetch(`https://backend-kids.onrender.com/children/${childId}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        pontos: pointsToAdd,
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error('Erro ao adicionar pontos');
-    }
-
-    // Atualiza o estado local após a chamada API bem-sucedida
-    setChildren(prevChildren =>
-      prevChildren.map(child =>
-        child.id === childId ? { ...child, pontos: child.pontos + pointsToAdd } : child
-      )
-    );
-
-    // Atualiza o contador de cliques para a criança
-    setClickedCount(prevClickedCount => ({
-      ...prevClickedCount,
-      [childId]: (prevClickedCount[childId] || 0) + 1,
-    }));
-
-  } catch (error) {
-    console.error('Erro ao adicionar pontos:', error);
-  }
-};
+  };
 
   const exportPDF = () => {
     const doc = new jsPDF() as any;
@@ -213,9 +194,9 @@ const addPoints = async (childId: number, pointsToAdd: number) => {
                   <TableCell align="center">{child.pontos}</TableCell>
                   <TableCell align="center">
                     <div className="flex justify-center gap-2">
-                      <Button 
-                        variant="contained" 
-                        className={`points${clickedCount[child.id] || 0}`} 
+                      <Button
+                        variant="contained"
+                        className={`points${clickedCount[child.id] || 0}`}
                         disabled={clickedCount[child.id] >= 4}
                         onClick={() => addPoints(child.id, 1)}
                       >+1</Button>
@@ -253,43 +234,43 @@ const addPoints = async (childId: number, pointsToAdd: number) => {
       </div>
 
       <Dialog open={open} onClose={handleClose}>
-      <DialogTitle>Adicionar Criança</DialogTitle>
-      <DialogContent>
-        <DialogContentText>Preencha os detalhes da criança:</DialogContentText>
-        <TextField
-          autoFocus
-          margin="dense"
-          id="nome"
-          name="nome"
-          label="Nome"
-          type="text"
-          fullWidth
-          onChange={handleChange}
-        />
-        <TextField
-          margin="dense"
-          id="idade"
-          name="idade"
-          label="Idade"
-          type="number"
-          fullWidth
-          onChange={handleChange}
-        />
-        <TextField
-          margin="dense"
-          id="pontos"
-          name="pontos"
-          label="Pontos"
-          type="number"
-          fullWidth
-          onChange={handleChange}
-        />
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={handleClose} color="primary">Cancelar</Button>
-        <Button onClick={handleSubmit} color="primary" disabled={isCreating}>Salvar</Button>
-      </DialogActions>
-    </Dialog>
+        <DialogTitle>Adicionar Criança</DialogTitle>
+        <DialogContent>
+          <DialogContentText>Preencha os detalhes da criança:</DialogContentText>
+          <TextField
+            autoFocus
+            margin="dense"
+            id="nome"
+            name="nome"
+            label="Nome"
+            type="text"
+            fullWidth
+            onChange={handleChange}
+          />
+          <TextField
+            margin="dense"
+            id="idade"
+            name="idade"
+            label="Idade"
+            type="number"
+            fullWidth
+            onChange={handleChange}
+          />
+          <TextField
+            margin="dense"
+            id="pontos"
+            name="pontos"
+            label="Pontos"
+            type="number"
+            fullWidth
+            onChange={handleChange}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClose} color="primary">Cancelar</Button>
+          <Button onClick={handleSubmit} color="primary" disabled={isCreating}>Salvar</Button>
+        </DialogActions>
+      </Dialog>
     </Paper>
   )
 }
