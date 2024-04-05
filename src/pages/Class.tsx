@@ -1,5 +1,20 @@
 import { useState, useEffect } from 'react';
-import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, TextField, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
+import {
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  TextField,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper
+} from '@mui/material';
 import { AddCircleOutline } from '@mui/icons-material';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -26,6 +41,7 @@ export function Class( props:Period ){
   const [newChild, setNewChild] = useState<Child>({ id: 0, nome: '', idade: 0, pontos: 0 });
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [clickedCount, setClickedCount] = useState<ClickedCountState>({});
+  const [isCreating, setIsCreating] = useState<boolean>(false);
 
 
   const fetchChildren = async () => {
@@ -53,12 +69,24 @@ export function Class( props:Period ){
     setOpen(false);
   };
 
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setNewChild({ ...newChild, [event.target.name]: event.target.value });
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setNewChild({
+      ...newChild,
+      [e.target.name]: e.target.value,
+    });
   };
 
   const handleSubmit = async () => {
     try {
+      setIsCreating(true); // Defina isCreating como true ao iniciar a criação da criança
+
+      // Verificar se a criança já existe na lista pelo nome
+      const existingChild = children.find(child => child.nome === newChild.nome);
+      if (existingChild) {
+        throw new Error('Esta criança já existe.');
+      }
+
+      // Se a criança não existir, adicione-a
       const response = await fetch('https://backend-kids.onrender.com/children', {
         method: 'POST',
         headers: {
@@ -66,11 +94,15 @@ export function Class( props:Period ){
         },
         body: JSON.stringify(newChild),
       });
-      const data = await response.json();
+      const data: Child = await response.json();
       setChildren([...children, data]);
       handleClose();
-    } catch (error) {
-      console.error('Erro ao inserir criança:', error);
+    } catch (error: any) {
+      console.error('Erro ao inserir criança:', error.message);
+      // Exibir mensagem de erro ao usuário
+      alert(error.message);
+    } finally {
+      setIsCreating(false); // Defina isCreating como false após a operação de criação, independentemente de ser bem-sucedida ou não
     }
   };
 
@@ -141,7 +173,13 @@ const addPoints = async (childId: number, pointsToAdd: number) => {
           <TableHead className='bg-gray-200 w-full'>
             <TableRow className="text-gray-600 uppercase text-sm leading-normal">
               <TableCell align="center">
-                <Button variant="contained" startIcon={<AddCircleOutline />} color="primary" className="mt-4 w-full sm:w-auto" onClick={handleOpen}>
+                <Button
+                  variant="contained"
+                  startIcon={<AddCircleOutline />}
+                  color="primary"
+                  className="mt-4 w-full sm:w-auto"
+                  onClick={handleOpen}
+                >
                   Adicionar Criança
                 </Button>
               </TableCell>
@@ -215,43 +253,43 @@ const addPoints = async (childId: number, pointsToAdd: number) => {
       </div>
 
       <Dialog open={open} onClose={handleClose}>
-        <DialogTitle>Adicionar Criança</DialogTitle>
-        <DialogContent>
-          <DialogContentText>Preencha os detalhes da criança:</DialogContentText>
-          <TextField
-            autoFocus
-            margin="dense"
-            id="nome"
-            name="nome"
-            label="Nome"
-            type="text"
-            fullWidth
-            onChange={handleChange}
-          />
-          <TextField
-            margin="dense"
-            id="idade"
-            name="idade"
-            label="Idade"
-            type="number"
-            fullWidth
-            onChange={handleChange}
-          />
-          <TextField
-            margin="dense"
-            id="pontos"
-            name="pontos"
-            label="Pontos"
-            type="number"
-            fullWidth
-            onChange={handleChange}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleClose} color="primary">Cancelar</Button>
-          <Button onClick={handleSubmit} color="primary">Salvar</Button>
-        </DialogActions>
-      </Dialog>
+      <DialogTitle>Adicionar Criança</DialogTitle>
+      <DialogContent>
+        <DialogContentText>Preencha os detalhes da criança:</DialogContentText>
+        <TextField
+          autoFocus
+          margin="dense"
+          id="nome"
+          name="nome"
+          label="Nome"
+          type="text"
+          fullWidth
+          onChange={handleChange}
+        />
+        <TextField
+          margin="dense"
+          id="idade"
+          name="idade"
+          label="Idade"
+          type="number"
+          fullWidth
+          onChange={handleChange}
+        />
+        <TextField
+          margin="dense"
+          id="pontos"
+          name="pontos"
+          label="Pontos"
+          type="number"
+          fullWidth
+          onChange={handleChange}
+        />
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={handleClose} color="primary">Cancelar</Button>
+        <Button onClick={handleSubmit} color="primary" disabled={isCreating}>Salvar</Button>
+      </DialogActions>
+    </Dialog>
     </Paper>
   )
 }
