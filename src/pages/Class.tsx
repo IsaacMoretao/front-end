@@ -19,6 +19,7 @@ import {
 import { AddCircleOutline } from '@mui/icons-material';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import ButtonDowload from '../components/ButtonDowload';
 
 interface Child {
   id: number;
@@ -126,10 +127,22 @@ export function Class(props: Period) {
     }
   };
 
+  let canClick = true;
+
   const exportPDF = () => {
-    const doc = new jsPDF() as any;
+    if (!canClick) {
+      return; // Impede a ação se ainda estiver dentro do período de espera
+    }
+  
+    canClick = false; // Bloqueia futuros cliques
+  
+    const doc = new jsPDF();
     autoTable(doc, { html: '#my-table' });
     doc.save('table.pdf');
+  
+    setTimeout(() => {
+      canClick = true; // Permite cliques novamente após 3 segundos
+    }, 3000); // 3000 milissegundos = 3 segundos
   };
 
   const filteredChildren = children.filter(child =>
@@ -165,9 +178,7 @@ export function Class(props: Period) {
                 </Button>
               </TableCell>
               <TableCell align="center">
-                <Button variant="contained" color="secondary" className="mt-4 w-full sm:w-auto" onClick={exportPDF}>
-                  Baixar Excel
-                </Button>
+                <button onClick={exportPDF}><ButtonDowload/></button>
               </TableCell>
               <TableCell />
               <TableCell />
