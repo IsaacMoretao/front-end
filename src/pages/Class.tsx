@@ -20,6 +20,8 @@ import { AddCircleOutline } from '@mui/icons-material';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import ButtonDowload from '../components/ButtonDowload';
+import { DeleteChild } from '../components/DeleteChild'
+import { useAuth } from '../Context/AuthProvider';
 
 interface Child {
   id: number;
@@ -41,9 +43,15 @@ export function Class(props: Period) {
   const [children, setChildren] = useState<Child[]>([]);
   const [open, setOpen] = useState(false);
   const [newChild, setNewChild] = useState<Child>({ id: 0, nome: '', idade: 0, pontos: 0 });
+
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [clickedCount, setClickedCount] = useState<ClickedCountState>({});
   const [isCreating, setIsCreating] = useState<boolean>(false);
+
+  const [editedChild, setEditedChild] = useState<Child | null>(null);
+  const { state } = useAuth();
+
+  const { level } = state;
 
 
   const fetchChildren = async () => {
@@ -127,6 +135,45 @@ export function Class(props: Period) {
     }
   };
 
+  const handleEditChild = async () => {
+    if (!editedChild) return;
+  
+    const editedChildWithNumbers = {
+      ...editedChild,
+      idade: parseInt(String(editedChild.idade)),
+      pontos: parseInt(String(editedChild.pontos))
+    };
+  
+    try {
+      const response = await api.put(`/children/${editedChild.id}`, editedChildWithNumbers);
+      if (response.status === 200) {
+        alert("Edição completa");
+        // Atualizar o estado da criança editada
+        setChildren(prevChildren =>
+          prevChildren.map(child =>
+            child.id === editedChild!.id ? editedChildWithNumbers : child
+          )
+        );
+        setEditedChild(null); // Desabilita a edição após salvar
+      } else {
+        throw new Error('Falha ao editar a criança');
+      }
+    } catch (error) {
+      console.error('Erro ao editar a criança:', error);
+    }
+  };
+
+  const handleEditInputChange = (e: React.ChangeEvent<HTMLInputElement>, field: keyof Child) => {
+    const { value } = e.target;
+    if (editedChild) {
+      setEditedChild((prevState) => ({
+        ...prevState!,
+        [field]: value,
+      }));
+    }
+  };
+  
+
   let canClick = true;
 
   const exportPDF = () => {
@@ -200,9 +247,39 @@ export function Class(props: Period) {
             ) : (
               filteredChildren.map((child) => (
                 <TableRow key={child.id} className="bg-white py-10">
-                  <TableCell align="center">{child.nome}</TableCell>
-                  <TableCell align="center">{child.idade}</TableCell>
-                  <TableCell align="center">{child.pontos}</TableCell>
+                  <TableCell align="center">
+                    {editedChild && editedChild.id === child.id ? (
+                      <input
+                        type="text"
+                        value={editedChild.nome}
+                        onChange={(e) => handleEditInputChange(e, 'nome')}
+                      />
+                    ) : (
+                      child.nome
+                    )}
+                  </TableCell>
+                  <TableCell align="center">
+                    {editedChild && editedChild.id === child.id ? (
+                      <input
+                        type="number"
+                        value={editedChild.idade}
+                        onChange={(e) => handleEditInputChange(e, 'idade')}
+                      />
+                    ) : (
+                      child.idade
+                    )}
+                  </TableCell>
+                  <TableCell align="center">
+                    {editedChild && editedChild.id === child.id ? (
+                      <input
+                        type="number"
+                        value={editedChild.pontos}
+                        onChange={(e) => handleEditInputChange(e, 'pontos')}
+                      />
+                    ) : (
+                      child.pontos
+                    )}
+                  </TableCell>
                   <TableCell align="center">
                     <div className="flex justify-center gap-2">
                       <Button
@@ -210,8 +287,39 @@ export function Class(props: Period) {
                         className={`points${clickedCount[child.id] || 0}`}
                         disabled={clickedCount[child.id] >= 4}
                         onClick={() => addPoints(child.id, 1)}
-                      >+1</Button>
-                      <Button variant="contained" color="error" onClick={() => addPoints(child.id, (-1))}>-1</Button>
+                      >
+                        +1
+                      </Button>
+                      <Button
+                        variant="contained"
+                        color="error"
+                        onClick={() => addPoints(child.id, -1)}
+                      >
+                        -1
+                      </Button>
+                      {level === "ADMIN" && (
+                        <>
+                          {editedChild && editedChild.id === child.id ? (
+                            <Button
+                              variant="contained"
+                              color="primary"
+                              onClick={() => handleEditChild()}
+                            >
+                              Salvar
+                            </Button>
+                          ) : (
+                            <Button
+                              variant="contained"
+                              color="primary"
+                              onClick={() => setEditedChild(child)}
+                            >
+                              Editar
+                            </Button>
+                          )}
+                          <DeleteChild childId={child.id} />
+                        </>
+                      )}
+                      
                     </div>
                   </TableCell>
                 </TableRow>

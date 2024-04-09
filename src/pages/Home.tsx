@@ -11,13 +11,21 @@ import {
   TableCell,
   TableContainer,
   TableHead, 
-  TableRow
+  TableRow,
+  IconButton,
+  Drawer,
+  List,
+  ListItemText
 } from '@mui/material';
-import Logo from "../assets/Logo.png"
+import ListItemButton from '@mui/material/ListItemButton';
+import Logo from "../assets/LogoSmall.svg"
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { ButtonHover } from '../components/ButtonHover';
 import ButtonDowload from '../components/ButtonDowload';
+import { useAuth } from '../Context/AuthProvider';
+import MenuIcon from '@mui/icons-material/Menu';
+
 
 interface Child {
   id: number;
@@ -29,19 +37,30 @@ interface Child {
 export function Home() {
   const [children, setChildren] = useState<Child[]>([]);
   const [server, setServer] = useState(false)
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
+const toggleDrawer = () => {
+  setDrawerOpen(!drawerOpen);
+};
+
+  // const toggleMenu = () => {
+  //   setIsMenuOpen(!isMenuOpen);
+  // };
 
   const verifyServer = async () => {
     try {
       const response = await api.get(`/`);
       const data = response.data;
-
-      if (data === "Hello World"){
-        setServer(true)
+  
+      if (data !== "Hello World"){
+        setServer(false);
       } else {
-        setServer(false)
+        setServer(true);
       }
     } catch (error) {
-      console.error('Erro ao buscar crianças:', error);
+      console.error('Erro ao verificar o servidor:', error);
+      setServer(false);
     }
   };
 
@@ -80,29 +99,63 @@ export function Home() {
     }, 3000); // 3000 milissegundos = 3 segundos
   };
 
+  const { dispatch } = useAuth();
+
+  const handleLogout = () => {
+    dispatch({ type: 'LOGOUT' });
+  };
+
   return (
-    <div>
+    <div className="bg-cover bg-center h-screen" style={{backgroundImage: "url('src/assets/Background.png')"}}>
       <AppBar position="static" color="inherit">
-        <Toolbar className="flex items-center justify-between">
-          <Typography variant="h6" component="div">
-            <img src={Logo} className="h-10 sm:h-12 md:h-14 lg:h-16" alt="" />
+        <Toolbar className="flex justify-between items-center">
+          <Typography variant="h6" component="div" className="flex items-center">
+            <img src={Logo} className="h-8 w-auto sm:h-10 md:h-12 lg:h-14" alt="" />
           </Typography>
           <div className="flex items-center">
-            <button onClick={exportPDF} className="mr-2 sm:mr-4">
-              <ButtonDowload/>
-            </button>
+            <div className="block sm:hidden">
+              <IconButton
+                edge="end"
+                color="inherit"
+                aria-label="menu"
+                onClick={toggleDrawer}
+              >
+                <MenuIcon />
+              </IconButton>
+            </div>
+            <Drawer anchor="right" open={drawerOpen} onClose={toggleDrawer}>
+            <List>
+              <ListItemButton onClick={exportPDF}>
+                <ListItemText primary="Download" />
+              </ListItemButton>
+              <ListItemButton onClick={handleLogout}>
+              <ListItemText primary="Logout" />
+              </ListItemButton>
+              <ListItemButton onClick={verifyServer}>
+      <ListItemText primary={server ? "Servidor dormindo" : "Servidor acordado"} />
+              </ListItemButton>
+            </List>
+          </Drawer>
+          <button onClick={exportPDF} className="mr-2 max-sm:hidden">
+            <ButtonDowload />
+          </button>
+          <div className="max-sm:hidden">
+            <Button color="success" onClick={handleLogout}>
+              Logout
+            </Button>
             {server ? (
-              <Button color="error" onClick={verifyServer} className="hidden sm:block">
+              <Button color="error" onClick={verifyServer}>
                 Servidor dormindo
               </Button>
             ) : (
-              <Button color="success" onClick={verifyServer} className="hidden sm:block">
+              <Button color="success" onClick={verifyServer}>
                 Servidor acordado
               </Button>
             )}
           </div>
-        </Toolbar>
-      </AppBar>
+        </div>
+      </Toolbar>
+    </AppBar>
       <div className="container mx-auto px-4">
         <h1 className="text-3xl text-black font-bold text-center my-8">ADMINISTRAÇÃO DE CRIANÇAS</h1>
 

@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
-import { TextField, Button, Container, Grid, Paper } from '@mui/material';
+import React, { useEffect, useState } from 'react';
+import { TextField, Button, Container, Grid, Paper, Typography, AppBar, Toolbar } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../Context/AuthProvider';
 import LoginImage from '../assets/Logo.png';
+import Logo from "../assets/LogoSmall.svg"
+import { api } from '../lib/axios';
 
 export function Login() {
   const [email, setEmail] = useState('');
@@ -10,8 +12,26 @@ export function Login() {
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const { dispatch } = useAuth();
+  const [server, setServer] = useState(false)
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const verifyServer = async () => {
+    try {
+      const response = await api.get(`/`);
+      const data = response.data;
+  
+      if (data !== "Hello World"){
+        setServer(false);
+      } else {
+        setServer(true);
+      }
+    } catch (error) {
+      console.error('Erro ao verificar o servidor:', error);
+      setServer(false);
+    }
+  };
+
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
       const response = await fetch('https://backend-kids.onrender.com/login', {
@@ -26,17 +46,64 @@ export function Login() {
       }
       const responseData = await response.json();
       console.log('Resposta do servidor:', responseData);
-      const { token } = responseData;
+      const { token, level } = responseData;
       sessionStorage.setItem('token', token);
-      dispatch({ type: 'LOGIN', payload: { token } });
-      navigate('/');
+      dispatch({ type: 'LOGIN', payload: {
+        token,
+        level
+      } });
+      navigate('/home');
+      
     } catch (error) {
       console.error('Erro ao fazer login:', error);
       setError('Erro ao fazer login. Por favor, tente novamente.');
     }
   };
+
+  const handleProfessorLogin = () => {
+    setEmail('verboaruja@kids.com');
+    setPassword('123456');
+  };
+  
+  // Define um estado para controlar se as credenciais estão prontas
+  const [credentialsReady, setCredentialsReady] = useState(false);
+  
+  // Define as credenciais e marca como prontas após um pequeno atraso
+  useEffect(() => {
+    if (credentialsReady) {
+      handleSubmit(new Event('submit') as unknown as React.FormEvent<HTMLFormElement>);
+    }
+  }, [credentialsReady]);
+  
+  useEffect(() => {
+    if (credentialsReady) {
+      handleProfessorLogin();
+    }
+  }, []); // Executar apenas uma vez após a montagem do componente
+  
+
   return (
     <Container>
+      <AppBar position="static" color="inherit">
+        <Toolbar className="flex items-center justify-between">
+          <Typography variant="h6" component="div">
+            <img src={Logo} className="h-10 sm:h-12 md:h-14 lg:h-16" alt="" />
+          </Typography>
+          <div className="flex items-center">
+
+
+            {server ? (
+              <Button color="error" onClick={verifyServer} className="hidden sm:block">
+                Servidor dormindo
+              </Button>
+            ) : (
+              <Button color="success" onClick={verifyServer} className="hidden sm:block">
+                Servidor acordado
+              </Button>
+            )}
+          </div>
+        </Toolbar>
+      </AppBar>
       <Grid
         container
         justifyContent="center"
@@ -78,6 +145,15 @@ export function Login() {
                 style={{ marginTop: '16px' }}
               >
                 Login
+              </Button>
+              <Button
+                variant="contained"
+                color="secondary"
+                fullWidth
+                style={{ marginTop: '16px' }}
+                onClick={handleProfessorLogin}
+              >
+                Entrar como Escalado
               </Button>
             </form>
           </Paper>
