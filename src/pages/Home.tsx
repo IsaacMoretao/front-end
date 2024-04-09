@@ -101,7 +101,7 @@ const toggleDrawer = () => {
   };
 
   return (
-    <div className="bg-cover bg-center h-screen" style={{backgroundImage: "url('src/assets/Background.png')"}}>
+    <div className="bg-cover bg-center h-screen bg-no-repeat bg-custom-background">
       <AppBar position="static" color="inherit">
         <Toolbar className="flex justify-between items-center">
           <Typography variant="h6" component="div" className="flex items-center">
@@ -152,7 +152,7 @@ const toggleDrawer = () => {
       </Toolbar>
     </AppBar>
       <div className="container mx-auto px-4">
-        <h1 className="text-3xl text-black font-bold text-center my-8">ADMINISTRAÇÃO DE CRIANÇAS</h1>
+        <h1 className="text-3xl text-black font-bold text-center my-8">GALARDÃO DE CRIANÇAS</h1>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10 justify-center items-center">
             <Link to="/sala-3-5" className="text-2xl text-center block text-white">

@@ -10,6 +10,9 @@ export default {
   ],
   theme: {
     extend: {
+      backgroundImage: theme => ({
+        'custom-background': "url('/assets/Background.png')",
+      }),
       keyframes: {
         slideDown: {
           '0%': { opacity: '100' },
