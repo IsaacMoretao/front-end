@@ -37,16 +37,11 @@ interface Child {
 export function Home() {
   const [children, setChildren] = useState<Child[]>([]);
   const [server, setServer] = useState(false)
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
 const toggleDrawer = () => {
   setDrawerOpen(!drawerOpen);
 };
-
-  // const toggleMenu = () => {
-  //   setIsMenuOpen(!isMenuOpen);
-  // };
 
   const verifyServer = async () => {
     try {

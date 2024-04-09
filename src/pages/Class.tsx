@@ -316,7 +316,7 @@ export function Class(props: Period) {
                               Editar
                             </Button>
                           )}
-                          <DeleteChild childId={child.id} />
+                          <DeleteChild childId={child.id} child={child} />
                         </>
                       )}
                       

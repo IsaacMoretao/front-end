@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { TextField, Button, Container, Grid, Paper, Typography, AppBar, Toolbar } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../Context/AuthProvider';
@@ -65,23 +65,6 @@ export function Login() {
     setPassword('123456');
   };
   
-  // Define um estado para controlar se as credenciais estão prontas
-  const [credentialsReady, setCredentialsReady] = useState(false);
-  
-  // Define as credenciais e marca como prontas após um pequeno atraso
-  useEffect(() => {
-    if (credentialsReady) {
-      handleSubmit(new Event('submit') as unknown as React.FormEvent<HTMLFormElement>);
-    }
-  }, [credentialsReady]);
-  
-  useEffect(() => {
-    if (credentialsReady) {
-      handleProfessorLogin();
-    }
-  }, []); // Executar apenas uma vez após a montagem do componente
-  
-
   return (
     <Container>
       <AppBar position="static" color="inherit">

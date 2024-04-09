@@ -11,10 +11,12 @@ interface Child {
 
 interface excluseId {
   childId: number;
+  child: any;
 }
 
 export function DeleteChild(props: excluseId) {
   const [children, setChildren] = useState<Child[]>([]);
+  console.log(children)
 
   let Child = props.childId
 
@@ -27,7 +29,7 @@ export function DeleteChild(props: excluseId) {
       const response = await api.delete(`/delete/${childId}`);
       if (response.status === 200) {
         alert("Criança excluída com sucesso");
-        setChildren(prevChildren => prevChildren.filter(child => props.childId !== childId));
+        setChildren(prevChildren => prevChildren.filter(child => child.id !== childId));
       } else {
         throw new Error('Falha ao excluir a criança');
       }
