@@ -16,17 +16,16 @@ export function Login() {
 
   const verifyServer = async () => {
     try {
-      const response = await api.get(`/`);
-      const data = response.data;
-  
-      if (data !== "Hello World"){
+      setServer(false);
+      const response = await api.get(`/children/`);
+      if (response.data && response.data.children.length > 0) {
         setServer(false);
       } else {
         setServer(true);
       }
     } catch (error) {
-      console.error('Erro ao verificar o servidor:', error);
       setServer(false);
+      console.error('Erro ao verificar o servidor:', error);
     }
   };
 

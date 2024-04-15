@@ -43,21 +43,20 @@ const toggleDrawer = () => {
   setDrawerOpen(!drawerOpen);
 };
 
-  const verifyServer = async () => {
-    try {
-      const response = await api.get(`/`);
-      const data = response.data;
-  
-      if (data !== "Hello World"){
-        setServer(false);
-      } else {
-        setServer(true);
-      }
-    } catch (error) {
-      console.error('Erro ao verificar o servidor:', error);
+const verifyServer = async () => {
+  try {
+    setServer(false);
+    const response = await api.get(`/children/`);
+    if (response.data && response.data.children.length > 0) {
       setServer(false);
+    } else {
+      setServer(true);
     }
-  };
+  } catch (error) {
+    setServer(false);
+    console.error('Erro ao verificar o servidor:', error);
+  }
+};
 
   const fetchChildren = async () => {
     try {
