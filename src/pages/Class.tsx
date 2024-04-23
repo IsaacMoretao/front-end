@@ -165,14 +165,14 @@ export function Class(props: Period) {
 
   const handleEditInputChange = (e: React.ChangeEvent<HTMLInputElement>, field: keyof Child) => {
     const { value } = e.target;
+    const newValue = field === 'idade' || field === 'pontos' ? parseInt(value, 10) : value;
     if (editedChild) {
       setEditedChild((prevState) => ({
         ...prevState!,
-        [field]: value,
+        [field]: newValue,
       }));
     }
   };
-  
 
   let canClick = true;
 

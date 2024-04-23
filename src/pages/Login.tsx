@@ -80,7 +80,7 @@ export function Login() {
               </Button>
             ) : (
               <Button color="success" onClick={verifyServer} className="hidden sm:block">
-                Servidor acordado
+                Acordar servidor
               </Button>
             )}
           </div>

@@ -143,7 +143,7 @@ const verifyServer = async () => {
               </Button>
             ) : (
               <Button color="success" onClick={verifyServer}>
-                Servidor acordado
+                Acordar servidor
               </Button>
             )}
           </div>
