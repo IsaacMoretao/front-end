@@ -11,7 +11,7 @@ export default {
   theme: {
     extend: {
       backgroundImage: theme => ({
-        'custom-background': "url('assets/fundo.png')",
+        'custom-background': "url('fundo.png')",
       }),
       keyframes: {
         slideDown: {
