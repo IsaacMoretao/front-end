@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { TextField, Button, Container, Grid, Paper, Typography, AppBar, Toolbar } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../Context/AuthProvider';
-import LoginImage from '../assets/Logo.png';
-import Logo from "../assets/LogoSmall.svg"
+import LoginImage from '../../assets/Logo.png';
+import Logo from "../../assets/LogoSmall.svg"
 import { api } from '../lib/axios';
 
 export function Login() {

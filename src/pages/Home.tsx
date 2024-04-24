@@ -18,7 +18,7 @@ import {
   ListItemText
 } from '@mui/material';
 import ListItemButton from '@mui/material/ListItemButton';
-import Logo from "../assets/LogoSmall.svg"
+import Logo from "../../assets/LogoSmall.svg"
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { ButtonHover } from '../components/ButtonHover';

@@ -1,5 +1,5 @@
 import '../Stylles/Loader.css';
-import eclipse from "../assets/Eclipse.gif"
+import eclipse from "../../assets/Eclipse.gif"
 
 export function Loader() {
   return(

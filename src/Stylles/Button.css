@@ -172,7 +172,7 @@
 .afterClick {
   background-color: #1ECD97  !important;
   background: white;
-  background-image: url("../assets/Check.svg") !important;
+  background-image: url("../../assets/Check.svg") !important;
   background-position: center center !important;
   background-repeat: no-repeat  !important;
   background-size: 12px  !important;
