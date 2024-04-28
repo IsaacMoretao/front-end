@@ -209,7 +209,7 @@ export function Class(props: Period) {
         margin="normal"
       />
 
-      <TableContainer className="my-4">
+<TableContainer className="my-4">
         <Table>
           <TableHead className='bg-gray-200 w-full'>
             <TableRow className="text-gray-600 uppercase text-sm leading-normal">
@@ -328,29 +328,6 @@ export function Class(props: Period) {
           </TableBody>
         </Table>
       </TableContainer>
-
-      <div style={{ display: 'none' }}>
-        <TableContainer>
-          <Table id="my-table">
-            <TableHead>
-              <TableRow>
-                <TableCell>Nome</TableCell>
-                <TableCell align="right">Idade</TableCell>
-                <TableCell align="right">Pontos</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {children.map((child) => (
-                <TableRow key={child.id}>
-                  <TableCell>{child.nome}</TableCell>
-                  <TableCell align="right">{child.idade}</TableCell>
-                  <TableCell align="right">{child.pontos}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </div>
 
       <Dialog open={open} onClose={handleClose}>
         <DialogTitle>Adicionar Criança</DialogTitle>
