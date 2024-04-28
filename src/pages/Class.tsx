@@ -113,7 +113,7 @@ export function Class(props: Period) {
         return;
       }
 
-      const response = await api.put(`/children/${childId}`, { pontos: pointsToAdd });
+      const response = await api.put(`/addPoint/${childId}`, { pontos: pointsToAdd });
 
       if (response.status !== 200) {
         throw new Error('Erro ao adicionar pontos');
