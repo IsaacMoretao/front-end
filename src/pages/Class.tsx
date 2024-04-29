@@ -56,7 +56,7 @@ export function Class(props: Period) {
 
   const fetchChildren = async () => {
     try {
-      const response = await api.get(`/children`);
+      const response = await api.get(`/children/filterByAge?minAge=${props.minAge}&maxAge=${props.maxAge}`);
       const data = response.data;
 
       data.sort((a: Child, b: Child) => a.nome.localeCompare(b.nome));
