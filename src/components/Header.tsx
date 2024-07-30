@@ -20,7 +20,7 @@ interface Product {
 }
 
 export function Header() {
-  const [products, setProducts] = useState<Product[]>([]);
+  // const [products, setProducts] = useState<Product[]>([]);
   const [open, setOpen] = useState(false);
   const { darkMode } = useTheme();
   const [isEditing, setIsEditing] = useState(false);
@@ -70,7 +70,8 @@ export function Header() {
         if (!isEditing) {
           // Adiciona nova criança
           const response = await api.post("/children", currentProduct);
-          setProducts((prev) => [...prev, response.data]);
+          // setProducts((prev) => [...prev, response.data]);
+          console.log(response)
         }
         handleClose();
       } catch (error) {

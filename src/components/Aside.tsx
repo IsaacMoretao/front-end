@@ -1,12 +1,10 @@
-import { House, Database, SignOut, GearSix, Table, UserCirclePlus } from "phosphor-react";
+import { House, Database, SignOut, GearSix, Table } from "phosphor-react";
 import Logo from "../../assets/Logo.png";
 import { useAuth } from "../Context/AuthProvider";
 import { Link } from "react-router-dom";
 
 import { api } from "../lib/axios";
 import { useEffect, useState } from "react";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 import {
   TableContainer,
   TableHead,
@@ -45,21 +43,6 @@ export function Aside() {
       setServer(false);
       console.error("Erro ao verificar o servidor:", error);
     }
-  };
-
-  let canClick = true;
-
-  const exportPDF = () => {
-    if (!canClick) {
-      return;
-    }
-    canClick = false;
-    const doc = new jsPDF();
-    autoTable(doc, { html: "#my-table" });
-    doc.save("table.pdf");
-    setTimeout(() => {
-      canClick = true;
-    }, 3000);
   };
 
   const fetchChildren = async () => {
