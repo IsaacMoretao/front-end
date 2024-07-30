@@ -90,7 +90,7 @@ export function Header() {
           >
             {getIcon(path)}
 
-            <p className="mt-2">{title}</p>
+            <p className={"mt-2 text-gray-100"}>{title}</p>
           </Typography>
           <div className="flex items-center">
             <button

@@ -42,11 +42,11 @@ export function Home() {
 
   return (
     <div
-      className={`bg-cover bg-center min-h-screen ${
+      className={`bg-cover bg-center min-h-[100vh] ${
         darkMode ? "bg-gray-900" : "bg-gray-100"
       }`}
     >
-      <div className="container mx-auto lg:pl-20 lg:pr-4">
+      <div className="container mx-auto lg:pl-20 lg:pr-4 pb-32">
         <h1
           className={`text-3xl font-bold text-center py-8 ${
             darkMode ? "text-gray-100" : "text-gray-900"

@@ -41,13 +41,15 @@ function App() {
   return (
     <>
       <Router>
-        {state.token === null || state.token === "" ? (
+        {state.token === "" ? (
+          <>
+
+          </>
+        ) : (
           <>
             <Header />
             <Aside />
           </>
-        ) : (
-          <></>
         )}
         <Routes>
           {state.token === null || state.token === "" ? (

@@ -33,7 +33,7 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
     case 'LOGOUT':
       localStorage.removeItem('token'); // Remover token do localStorage no logout
       localStorage.removeItem('level');
-      return { ...state, token: null, level: null }; // Resetando o token e o level
+      return { ...state, token: "", level: "" }; // Resetando o token e o level
     default:
       return state;
   }

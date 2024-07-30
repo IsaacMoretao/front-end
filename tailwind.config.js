@@ -23,8 +23,8 @@ export default {
         'slide-down': 'slideDown 5s linear',
       },
       fontFamily: {
-        Inter: ['inter'],
-        italiana: ['Italiana'],
+        Poppins: ['Poppins', 'sans-serif'],
+        poppins: ['Poppins', 'sans-serif'],
       },
       colors: {
         gray:{
