@@ -1,12 +1,15 @@
+import { useTheme } from "../Context/ThemeContext";
 import "../Stylles/Button.css"
 
 export function ButtonHover( props:{name: string} ) {
+  const { darkMode } = useTheme();
+
   return(
     <div className="max-h-[72px]">
       <div className="buttons">
         <button className="blob-btn">
           {props.name}
-          <span className="blob-btn__inner">
+          <span className={`blob-btn__inner ${darkMode ? "bg-gray-800" : "bg-white"}`}>
             <span className="blob-btn__blobs">
               <span className="blob-btn__blob"></span>
               <span className="blob-btn__blob"></span>

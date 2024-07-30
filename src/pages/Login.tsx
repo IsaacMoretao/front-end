@@ -1,18 +1,27 @@
-import React, { useState } from 'react';
-import { TextField, Button, Container, Grid, Paper, Typography, AppBar, Toolbar } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../Context/AuthProvider';
-import LoginImage from '../../assets/Logo.png';
-import Logo from "../../assets/LogoSmall.svg"
-import { api } from '../lib/axios';
+import React, { useState } from "react";
+import {
+  TextField,
+  Button,
+  Container,
+  Grid,
+  Paper,
+  Typography,
+  AppBar,
+  Toolbar,
+} from "@mui/material";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../Context/AuthProvider";
+import LoginImage from "../../assets/Logo.png";
+import Logo from "../../assets/LogoSmall.svg";
+import { api } from "../lib/axios";
 
 export function Login() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const { dispatch } = useAuth();
-  const [server, setServer] = useState(false)
+  const [server, setServer] = useState(false);
 
   const verifyServer = async () => {
     try {
@@ -25,45 +34,46 @@ export function Login() {
       }
     } catch (error) {
       setServer(false);
-      console.error('Erro ao verificar o servidor:', error);
+      console.error("Erro ao verificar o servidor:", error);
     }
   };
-
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
-      const response = await fetch('https://backend-kids.onrender.com/login', {
-        method: 'POST',
+      const response = await fetch("https://backend-kids.onrender.com/login", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ username: email, password }),
       });
-      if (!response.ok) { 
-        throw new Error('Falha ao fazer login');
+      if (!response.ok) {
+        throw new Error("Falha ao fazer login");
       }
       const responseData = await response.json();
-      console.log('Resposta do servidor:', responseData);
+      console.log("Resposta do servidor:", responseData);
       const { token, level } = responseData;
-      sessionStorage.setItem('token', token);
-      dispatch({ type: 'LOGIN', payload: {
-        token,
-        level
-      } });
-      navigate('/home');
-      
+      sessionStorage.setItem("token", token);
+      dispatch({
+        type: "LOGIN",
+        payload: {
+          token,
+          level,
+        },
+      });
+      navigate("/home");
     } catch (error) {
-      console.error('Erro ao fazer login:', error);
-      setError('Erro ao fazer login. Por favor, tente novamente.');
+      console.error("Erro ao fazer login:", error);
+      setError("Erro ao fazer login. Por favor, tente novamente.");
     }
   };
 
   const handleProfessorLogin = () => {
-    setEmail('verboaruja@kids.com');
-    setPassword('123456');
+    setEmail("verboaruja@kids.com");
+    setPassword("123456");
   };
-  
+
   return (
     <Container>
       <AppBar position="static" color="inherit">
@@ -72,14 +82,20 @@ export function Login() {
             <img src={Logo} className="h-10 sm:h-12 md:h-14 lg:h-16" alt="" />
           </Typography>
           <div className="flex items-center">
-
-
             {server ? (
-              <Button color="error" onClick={verifyServer} className="hidden sm:block">
+              <Button
+                color="error"
+                onClick={verifyServer}
+                className="hidden sm:block"
+              >
                 Servidor dormindo
               </Button>
             ) : (
-              <Button color="success" onClick={verifyServer} className="hidden sm:block">
+              <Button
+                color="success"
+                onClick={verifyServer}
+                className="hidden sm:block"
+              >
                 Acordar servidor
               </Button>
             )}
@@ -92,15 +108,19 @@ export function Login() {
         alignItems="center"
         flexDirection="column"
         gap="30px"
-        style={{ minHeight: '100vh' }}
+        style={{ minHeight: "100vh" }}
       >
         <Grid item xs={12} sm={6} md={8}>
-          <img src={LoginImage} alt="Login" style={{ maxWidth: '200px', height: 'auto' }} />
+          <img
+            src={LoginImage}
+            alt="Login"
+            style={{ maxWidth: "200px", height: "auto" }}
+          />
         </Grid>
         <Grid item xs={12} sm={6} md={4}>
-          <Paper elevation={3} style={{ padding: '20px' }}>
-            {error && <p>{error}</p>} 
-            <form onSubmit={handleSubmit} style={{ width: '100%' }}>
+          <Paper elevation={3} style={{ padding: "20px" }}>
+            {error && <p>{error}</p>}
+            <form onSubmit={handleSubmit} style={{ width: "100%" }}>
               <TextField
                 type="email"
                 label="Email"
@@ -124,7 +144,7 @@ export function Login() {
                 variant="contained"
                 color="primary"
                 fullWidth
-                style={{ marginTop: '16px' }}
+                style={{ marginTop: "16px" }}
               >
                 Login
               </Button>
@@ -132,7 +152,7 @@ export function Login() {
                 variant="contained"
                 color="secondary"
                 fullWidth
-                style={{ marginTop: '16px' }}
+                style={{ marginTop: "16px" }}
                 onClick={handleProfessorLogin}
               >
                 Entrar como Escalado
