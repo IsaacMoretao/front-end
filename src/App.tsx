@@ -41,8 +41,14 @@ function App() {
   return (
     <>
       <Router>
-        <Header />
-        <Aside />
+        {state.token === null || state.token === "" ? (
+          <>
+            <Header />
+            <Aside />
+          </>
+        ) : (
+          <></>
+        )}
         <Routes>
           {state.token === null || state.token === "" ? (
             <>
