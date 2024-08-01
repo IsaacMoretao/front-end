@@ -127,7 +127,7 @@ export function Config() {
             darkMode ? "#fff" : "#000"
           }`}  />
         </div>
-        {state.level != "ADMIN" || state.token === "" ? (
+        {state.level === "ADMIN" ? (
           <button className="flex flex-col justify-center gap-5 items-center py-3 rounded-lg border border-red-500 bg-red-500 bg-opacity-10 w-[90%] lg:ml-16">
             <h3 className="font-bold text-lg">ZONA PERIGOSA</h3>
             <button

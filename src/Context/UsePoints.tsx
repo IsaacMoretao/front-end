@@ -15,7 +15,7 @@ const usePoints = () => {
     Object.keys(pointsAdded).forEach((productId) => {
       const id = Number(productId);
       pointsAdded[id].forEach((timestamp) => {
-        const timeLeft = 60 * 1000 - (Date.now() - timestamp);
+        const timeLeft = 5 * 60 * 60 * 1000 - (Date.now() - timestamp);
         if (timeLeft > 0) {
           setTimeout(() => {
             setPointsAdded((prev) => {
