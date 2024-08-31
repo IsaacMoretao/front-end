@@ -50,9 +50,9 @@ interface ProductTableProps {
   maxAge: number;
 }
 
-interface PointsAdded {
-  [key: number]: number[];
-}
+// interface PointsAdded {
+//   [key: number]: number[];
+// }
 
 export function Table({
   setSelectedItems,
