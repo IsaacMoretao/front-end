@@ -1,19 +1,26 @@
 import { useState, useEffect } from "react";
-import { NotePencil, PencilSimple, Trash, UserCirclePlus } from "phosphor-react";
+import {
+  NotePencil,
+  PencilSimple,
+  Trash,
+  UserCirclePlus,
+} from "phosphor-react";
 import { Table } from "../components/Table";
 import { api } from "../lib/axios";
-
 import { Modal, Box, Button, TextField, Typography } from "@mui/material";
 import InfiniteScroll from "react-infinite-scroll-component";
 import { useTheme } from "../Context/ThemeContext";
-import usePoints from "../Context/UsePoints";
 import { useAuth } from "../Context/AuthProvider";
+import { usePointsContext } from "../Context/PointsContext";
+
+interface Point {}
 
 interface Product {
   id: number;
   nome: string;
   idade: number;
   pontos: number;
+  points: Point[];
 }
 
 interface Class {
@@ -21,24 +28,26 @@ interface Class {
   max: number;
 }
 
+// interface PointsAdded {
+//   [key: number]: number[];
+// }
+
 export function Class({ min, max }: Class) {
+  const [selected, setSelected] = useState<string[]>([]);
+  const { pointsAdded, handleAddPoint, handleRemovePoint } = usePointsContext();
   const [products, setProducts] = useState<Product[]>([]);
   const [displayedProducts, setDisplayedProducts] = useState<Product[]>([]);
   const [selectedItems, setSelectedItems] = useState<number[]>([]);
   const [hasMore, setHasMore] = useState(true);
-
   const [page, setPage] = useState(0);
   const [open, setOpen] = useState(false);
   const [currentProduct, setCurrentProduct] = useState<Product | null>(null);
   const [isEditing, setIsEditing] = useState(false);
-
   const [menuVisibleId, setMenuVisibleId] = useState<number | null>(null);
   const { darkMode } = useTheme();
   const [searchTerm, setSearchTerm] = useState<string>("");
-  const { pointsAdded, handleAddPoint, handleRemovePoint } = usePoints();
-
   const { state } = useAuth();
-
+  // const [pointsAdded, setPointsAdded] = useState<PointsAdded>({});
   const ITEMS_PER_PAGE = 10;
 
   const fetchProducts = async (): Promise<Product[]> => {
@@ -47,6 +56,7 @@ export function Class({ min, max }: Class) {
         params: { minAge: min, maxAge: max },
       });
 
+      console.log(response.data); // Verifique o que está sendo retornado
       if (Array.isArray(response.data)) {
         return response.data;
       } else {
@@ -62,6 +72,7 @@ export function Class({ min, max }: Class) {
   useEffect(() => {
     const loadProducts = async () => {
       const allProducts = await fetchProducts();
+      console.log(allProducts); // Verifique o conteúdo de allProducts
       if (Array.isArray(allProducts)) {
         const sortedProducts = allProducts.sort((a, b) =>
           a.nome.localeCompare(b.nome)
@@ -97,11 +108,15 @@ export function Class({ min, max }: Class) {
   };
 
   const handleEditMobille = (product?: Product) => {
+    console.log("product:", product);
+    console.log("selected:", selected);
+    console.log("products:", products);
+
     if (product) {
       setCurrentProduct(product);
       setIsEditing(true);
-    } else if (selectedItems.length === 1) {
-      const product = products.find((p) => p.id === selectedItems[0]);
+    } else if (Array.isArray(selected) && selected.length === 1) {
+      const product = products?.find((p) => p.id.toString() === selected[0]);
       if (product) {
         setCurrentProduct(product);
         setIsEditing(true);
@@ -111,7 +126,7 @@ export function Class({ min, max }: Class) {
   };
 
   const handleCreate = () => {
-    setCurrentProduct({ id: 0, nome: "", idade: 0, pontos: 0 });
+    setCurrentProduct({ id: 0, nome: "", idade: 0, pontos: 0, points: [] });
     setIsEditing(false);
     setOpen(true);
   };
@@ -121,13 +136,25 @@ export function Class({ min, max }: Class) {
   const handleSave = async () => {
     if (currentProduct) {
       try {
+        // Garante que o array de 'points' esteja correto
+        const pointsArray: Point[] = new Array(
+          currentProduct.points.length
+        ).fill({} as Point);
+
+        const productToSave = {
+          ...currentProduct,
+          points: pointsArray, // Garante que o campo 'points' seja um array de objetos vazios
+        };
+
         if (isEditing) {
-          await api.put(`/children/${currentProduct.id}`, currentProduct);
+          // Edição do produto existente
+          await api.put(`/children/${currentProduct.id}`, productToSave);
           setProducts((prev) =>
-            prev.map((p) => (p.id === currentProduct.id ? currentProduct : p))
+            prev.map((p) => (p.id === currentProduct.id ? productToSave : p))
           );
         } else {
-          const response = await api.post("/children", currentProduct);
+          // Criação de nova criança
+          const response = await api.post("/children", [productToSave]);
           setProducts((prev) => [...prev, response.data]);
         }
         handleClose();
@@ -139,13 +166,11 @@ export function Class({ min, max }: Class) {
 
   const handleDelete = async (ids: number[]) => {
     try {
-      // Envia a lista de IDs em uma única chamada de API
       const response = await api.delete("/delete/", {
         data: { ids },
       });
 
       if (response.status === 200) {
-        // Atualiza a lista de produtos removendo os IDs deletados
         setProducts((prev) => prev.filter((p) => !ids.includes(p.id)));
         setSelectedItems([]);
       }
@@ -160,7 +185,7 @@ export function Class({ min, max }: Class) {
 
   const filterProducts = (): Product[] => {
     return products.filter((product) =>
-      product.nome.toLowerCase().includes("")
+      product.nome?.toLowerCase().includes(searchTerm.toLowerCase())
     );
   };
 
@@ -182,11 +207,25 @@ export function Class({ min, max }: Class) {
   };
 
   useEffect(() => {
-    const filteredProducts = products.filter((product) =>
-      product.nome.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredProducts = filterProducts();
     setDisplayedProducts(filteredProducts);
   }, [searchTerm, products]);
+
+  const handlePointsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const numberOfPoints = Number(e.target.value);
+
+    setCurrentProduct((prevProduct) => {
+      if (!prevProduct) return null;
+
+      // Cria um novo array de pontos com o número especificado
+      const pointsArray = new Array(numberOfPoints).fill({});
+
+      return {
+        ...prevProduct,
+        points: pointsArray, // Substitui o array de 'points' existente
+      };
+    });
+  };
 
   return (
     <>
@@ -225,7 +264,6 @@ export function Class({ min, max }: Class) {
                 ) : (
                   <button className="opacity-50 cursor-not-allowed">
                     <UserCirclePlus size={35} color="#5C46B2" />
-
                   </button>
                 )}
                 <button onClick={handleCreate} className="px-4 py-2">
@@ -249,47 +287,45 @@ export function Class({ min, max }: Class) {
                   </button>
                 )}
               </div>
-              <p
-                className={`font-bold mb-3 ${
-                  darkMode ? "text-gray-100" : "text-gray-900"
-                }`}
-              >
-                Essa sala tem alunos de {min} a {max} anos
-              </p>
+              <Table
+                selectedItems={selectedItems}
+                setSelectedItems={setSelectedItems}
+                onSelectItem={handleSelectItem}
+                minAge={min}
+                maxAge={max}
+              />
             </header>
-            <Table
-              selectedItems={selectedItems}
-              setSelectedItems={setSelectedItems}
-              onSelectItem={handleSelectItem}
-              minAge={min}
-              maxAge={max}
-            />
           </div>
         </main>
-        <article
-          className={`sm:p-16 max-sm:p-4 min-h-[95vh] hidden max-md:block
-          ${darkMode ? "bg-gray-900" : "bg-gray-200"}`}
+        <div
+          className={`md:hidden p-5 ${
+            darkMode ? "bg-gray-900" : "bg-gray-100"
+          }`}
         >
-          <input
-            type="text"
-            placeholder="Pesquisar por nome..."
-            value={searchTerm}
+          <TextField
+            id="search"
+            label="Search"
+            variant="outlined"
+            fullWidth
             onChange={(e) => setSearchTerm(e.target.value)}
-            className={`file:mb-4 p-2 border border-gray-300 rounded w-full ${darkMode ? "bg-gray-800 text-gray-100" : "bg-white text-gray-900"}`}
+            value={searchTerm}
+            className="mb-4"
           />
-          {Array.isArray(displayedProducts) &&
+          {displayedProducts.length > 0 ? (
             displayedProducts.map((product) => (
               <section
                 key={product.id}
-                className={`lg:hidden flex p-4 rounded-lg shadow-md relative my-5 ${darkMode ? "bg-gray-800 text-gray-100" : "bg-white text-gray-900"}`}
+                className={`lg:hidden flex p-4 rounded-lg shadow-md relative my-5 ${
+                  darkMode
+                    ? "bg-gray-800 text-gray-100"
+                    : "bg-white text-gray-900"
+                }`}
               >
                 <div className="flex-grow pl-4">
                   <header className="flex justify-between items-center mb-2">
                     <h2 className="font-semibold text-sm">{product.nome}</h2>
                     <div className="flex items-center space-x-2">
-                      <span className=" text-xs">
-                        {`Idade: ${product.idade} anos`}
-                      </span>
+                      <span className="text-xs">{`Idade: ${product.idade} anos`}</span>
                       <div className="relative">
                         <button
                           onClick={() => toggleMenu(product.id)}
@@ -373,8 +409,11 @@ export function Class({ min, max }: Class) {
                   </div>
                 </div>
               </section>
-            ))}
-        </article>
+            ))
+          ) : (
+            <p>No products found.</p>
+          )}
+        </div>
       </InfiniteScroll>
       <Modal
         open={open}
@@ -436,13 +475,12 @@ export function Class({ min, max }: Class) {
                 fullWidth
                 margin="normal"
                 type="number"
-                value={currentProduct.pontos || ""}
-                onChange={(e) =>
-                  setCurrentProduct({
-                    ...currentProduct,
-                    pontos: Number(e.target.value),
-                  })
+                value={
+                  Array.isArray(currentProduct.points)
+                    ? currentProduct.points.length
+                    : 0
                 }
+                onChange={handlePointsChange}
               />
               <Button
                 type="submit"

@@ -2,7 +2,10 @@ import { useState, useEffect } from "react";
 import InfiniteScroll from "react-infinite-scroll-component";
 import { api } from "../lib/axios";
 import { useTheme } from "../Context/ThemeContext";
-import usePoints from "../Context/UsePoints";
+// import usePoints from "../Context/UsePoints";
+import { DotsThreeOutline } from "phosphor-react";
+import { PopupDetails } from "./PopupDetails";
+import { usePointsContext } from "../Context/PointsContext";
 
 interface Product {
   id: number;
@@ -47,6 +50,10 @@ interface ProductTableProps {
   maxAge: number;
 }
 
+interface PointsAdded {
+  [key: number]: number[];
+}
+
 export function Table({
   setSelectedItems,
   selectedItems,
@@ -60,9 +67,90 @@ export function Table({
   const [page, setPage] = useState(0);
 
   const [searchNome, setSearchNome] = useState("");
-  const { pointsAdded, handleAddPoint, handleRemovePoint } = usePoints();
+  // const [pointsAdded, setPointsAdded] = useState<PointsAdded>({});
+  const { pointsAdded, handleAddPoint, handleRemovePoint } = usePointsContext();
   const [selectAll, setSelectAll] = useState(false);
   const { darkMode } = useTheme();
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [selectedProductId, setSelectedProductId] = useState<number | null>(
+    null
+  );
+
+  // useEffect(() => {
+  //   const storedPoints = localStorage.getItem('pointsAdded');
+  //   if (storedPoints) {
+  //     setPointsAdded(JSON.parse(storedPoints));
+  //   }
+  // }, []);
+  
+
+  // const handleAddPoint = async (productId: number) => {
+  //   try {
+  //     const response = await api.post(`/addPoint/${productId}`);
+      
+  //     if (response.status === 201) {
+  //       setPointsAdded((prevPoints) => {
+  //         const currentTime = Date.now();
+  //         const updatedPoints = prevPoints[productId] || [];
+          
+  //         const filteredPoints = updatedPoints.filter(
+  //           (timestamp) => currentTime - timestamp <= 60 * 1000
+  //         );
+  
+  //         if (filteredPoints.length < 4) {
+  //           filteredPoints.push(currentTime);
+  //           const newPointsAdded = { ...prevPoints, [productId]: filteredPoints };
+  //           localStorage.setItem('pointsAdded', JSON.stringify(newPointsAdded)); 
+  //           return newPointsAdded;
+  //         }
+  //         return prevPoints;
+  //       });
+  //     }
+  //   } catch (error) {
+  //     console.error('Erro ao adicionar ponto:', error);
+  //   }
+  // };  
+
+  // const handleRemovePoint = async (productId: number) => {
+  //   try {
+  //     const response = await api.delete(`/deletePoint/${productId}`);
+      
+  //     if (response.status === 200) {
+  //       setPointsAdded((prevPoints) => {
+  //         // Remove o ponto apenas se o tempo não tiver expirado
+  //         const currentTime = Date.now();
+  //         const updatedPoints = prevPoints[productId] || [];
+  //         const filteredPoints = updatedPoints.filter(
+  //           (timestamp) => currentTime - timestamp <= 60 * 1000
+  //         );
+  
+  //         // Remove o ponto se ele estiver dentro do intervalo de tempo permitido
+  //         if (filteredPoints.length > 0) {
+  //           filteredPoints.shift(); // Remove o ponto mais antigo
+  //           const newPointsAdded = { ...prevPoints, [productId]: filteredPoints };
+  //           localStorage.setItem('pointsAdded', JSON.stringify(newPointsAdded)); // Atualiza o localStorage
+  //           return newPointsAdded;
+  //         }
+  
+  //         return prevPoints;
+  //       });
+  //     } else {
+  //       alert('O ponto não pode ser excluído após 1 minuto.');
+  //     }
+  //   } catch (error) {
+  //     console.error('Erro ao excluir ponto:', error);
+  //   }
+  // };
+
+  const handleOpenPopup = (id: number) => {
+    setSelectedProductId(id);
+    setIsPopupOpen(true);
+  };
+
+  const handleClosePopup = () => {
+    setIsPopupOpen(false);
+    setSelectedProductId(null); // Limpa o ID quando o popup é fechado
+  };
 
   const handleSelectAll = () => {
     if (selectAll) {
@@ -202,7 +290,11 @@ export function Table({
                 >
                   <td className="p-3">
                     <input
-                      className="px-5 py-2"
+                      className={`px-5 py-2 ${
+                        darkMode
+                          ? "text-gray-100 hover:bg-gray-600"
+                          : "text-gray-900 hover:bg-gray-200"
+                      }`}
                       type="checkbox"
                       onChange={() => onSelectItem(product.id)}
                       checked={selectedItems.includes(product.id)}
@@ -219,17 +311,30 @@ export function Table({
                         disabled={
                           pointsAdded[product.id]?.length >= 4 &&
                           Date.now() - (pointsAdded[product.id]?.[0] || 0) <=
-                            2 * 60 * 1000
+                            60 * 1000
                         }
                       >
                         +1 ponto
                       </button>
                       <button
                         className="ml-1 bg-red-500 text-white px-2 py-1 rounded"
-                        onClick={() => handleRemovePoint(product.id)}
+                         onClick={() => handleRemovePoint(product.id)}
                       >
                         -1 ponto
                       </button>
+                      <button
+                        className="ml-1 text-white px-2 py-1 rounded"
+                        onClick={() => handleOpenPopup(product.id)} // Passa o ID da criança ao abrir o popup
+                      >
+                        <DotsThreeOutline size={45} color="#9ca3af" />
+                      </button>
+
+                      {isPopupOpen && selectedProductId === product.id && (
+                        <PopupDetails
+                          id={selectedProductId}
+                          onClose={handleClosePopup}
+                        />
+                      )}
                     </div>
                     <div className="p-3">
                       {pointsAdded[product.id] &&

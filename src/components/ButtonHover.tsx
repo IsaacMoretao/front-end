@@ -7,10 +7,10 @@ export function ButtonHover( props:{name: string} ) {
   return(
     <div className="max-h-[72px]">
       <div className="buttons">
-        <button className="blob-btn">
+        <button className={`blob-btn ${darkMode ? "text-purple-400" : "text-purple-500"}`}>
           {props.name}
           <span className={`blob-btn__inner ${darkMode ? "bg-gray-800" : "bg-white"}`}>
-            <span className="blob-btn__blobs">
+            <span className={`blob-btn__blobs`}>
               <span className="blob-btn__blob"></span>
               <span className="blob-btn__blob"></span>
               <span className="blob-btn__blob"></span>
