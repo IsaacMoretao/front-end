@@ -12,6 +12,7 @@ import InfiniteScroll from "react-infinite-scroll-component";
 import { useTheme } from "../Context/ThemeContext";
 import { useAuth } from "../Context/AuthProvider";
 import { usePointsContext } from "../Context/PointsContext";
+import { PopupDetails } from "../components/PopupDetails";
 
 interface Point {}
 
@@ -47,8 +48,22 @@ export function Class({ min, max }: Class) {
   const { darkMode } = useTheme();
   const [searchTerm, setSearchTerm] = useState<string>("");
   const { state } = useAuth();
+  const [selectedProductId, setSelectedProductId] = useState<number | null>(
+    null
+  );
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
   // const [pointsAdded, setPointsAdded] = useState<PointsAdded>({});
   const ITEMS_PER_PAGE = 10;
+
+  const handleOpenPopup = (id: number) => {
+    setSelectedProductId(id);
+    setIsPopupOpen(true);
+  };
+
+  const handleClosePopup = () => {
+    setIsPopupOpen(false);
+    setSelectedProductId(null); // Limpa o ID quando o popup é fechado
+  };
 
   const fetchProducts = async (): Promise<Product[]> => {
     try {
@@ -249,7 +264,7 @@ export function Class({ min, max }: Class) {
           >
             <header>
               <div className="flex gap-3 mb-3">
-                {state.level != "ADMIN" || state.token === "" ? (
+                {state.level != "ADMIN" ? (
                   <button
                     onClick={handleEdit}
                     disabled={selectedItems.length !== 1}
@@ -313,102 +328,126 @@ export function Class({ min, max }: Class) {
           />
           {displayedProducts.length > 0 ? (
             displayedProducts.map((product) => (
-              <section
-                key={product.id}
-                className={`lg:hidden flex p-4 rounded-lg shadow-md relative my-5 ${
-                  darkMode
-                    ? "bg-gray-800 text-gray-100"
-                    : "bg-white text-gray-900"
-                }`}
-              >
-                <div className="flex-grow pl-4">
-                  <header className="flex justify-between items-center mb-2">
-                    <h2 className="font-semibold text-sm">{product.nome}</h2>
-                    <div className="flex items-center space-x-2">
-                      <span className="text-xs">{`Idade: ${product.idade} anos`}</span>
-                      <div className="relative">
-                        <button
-                          onClick={() => toggleMenu(product.id)}
-                          className="focus:outline-none"
-                        >
-                          &#x22EE;
-                        </button>
-                        {menuVisibleId === product.id && (
-                          <div className="absolute right-0 mt-2 w-32 bg-white border rounded-md shadow-lg z-10">
-                            <button
-                              onClick={() => {
-                                handleEditMobille(product);
-                                setMenuVisibleId(null);
-                              }}
-                              className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                            >
-                              Editar
-                            </button>
-                            <button
-                              onClick={() => {
-                                handleDelete([product.id]);
-                                setMenuVisibleId(null);
-                              }}
-                              className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                            >
-                              Excluir
-                            </button>
-                          </div>
-                        )}
+              <>
+                {isPopupOpen && selectedProductId === product.id && (
+                  <PopupDetails
+                    id={selectedProductId}
+                    onClose={handleClosePopup}
+                  />
+                )}
+                <section
+                  key={product.id}
+                  className={`lg:hidden flex p-4 rounded-lg shadow-md relative my-5 ${
+                    darkMode
+                      ? "bg-gray-800 text-gray-100"
+                      : "bg-white text-gray-900"
+                  }`}
+                >
+                  <div className="flex-grow pl-4">
+                    <header className="flex justify-between items-center mb-2">
+                      <h2 className="font-semibold text-sm">{product.nome}</h2>
+                      <div className="flex items-center space-x-2">
+                        <span className="text-xs">{`Idade: ${product.idade} anos`}</span>
+                        <div className="relative">
+                          <button
+                            onClick={() => toggleMenu(product.id)}
+                            className="focus:outline-none"
+                          >
+                            &#x22EE;
+                          </button>
+                          {menuVisibleId === product.id && (
+                            <div className="absolute right-0 mt-2 w-32 bg-white border rounded-md shadow-lg z-10">
+                              {state.level != "ADMIN" ? (
+                                <>
+
+                                  
+                                </>
+                              ) : (
+                                <>
+                                  <button
+                                    onClick={() => {
+                                      handleEditMobille(product);
+                                      setMenuVisibleId(null);
+                                    }}
+                                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                  >
+                                    Editar
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      handleDelete([product.id]);
+                                      setMenuVisibleId(null);
+                                    }}
+                                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                  >
+                                    Excluir
+                                  </button>
+                                </>
+                              )}
+                              <button
+                                onClick={() => handleOpenPopup(product.id)}
+                                className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                              >
+                                Info
+                              </button>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  </header>
-                  <p className="text-sm mb-2">...</p>
-                  <footer className="flex justify-between text-sm">
-                    <span>{`Pontos: ${product.pontos}`}</span>
-                    <div>
-                      <button
-                        className="ml-1 bg-blue-500 text-white px-2 py-1 rounded"
-                        onClick={() => handleAddPoint(product.id)}
-                        disabled={
-                          pointsAdded[product.id]?.length >= 4 &&
-                          Date.now() - (pointsAdded[product.id]?.[0] || 0) <=
-                            2 * 60 * 1000
-                        }
-                      >
-                        +1 Ponto
-                      </button>
-                      <button
-                        className="ml-1 bg-red-500 text-white px-2 py-1 rounded"
-                        onClick={() => handleRemovePoint(product.id)}
-                        disabled={
-                          pointsAdded[product.id]?.length === 0 ||
-                          Date.now() -
-                            pointsAdded[product.id]?.[
-                              pointsAdded[product.id].length - 1
-                            ] >
-                            60 * 1000
-                        }
-                      >
-                        -1 Ponto
-                      </button>
-                    </div>
-                  </footer>
-                  <div className="p-3">
-                    {pointsAdded[product.id] &&
-                      pointsAdded[product.id].map((timestamp, index) => (
-                        <span
-                          key={index}
-                          className="ml-1 bg-gray-500 text-white px-2 py-1 rounded transition-all duration-300"
-                          style={{
-                            opacity: Date.now() - timestamp > 60 * 1000 ? 0 : 1,
-                            transform:
-                              Date.now() - timestamp > 60 * 1000
-                                ? "translateY(-10px)"
-                                : "translateY(0)",
-                          }}
+                    </header>
+                    <p className="text-sm mb-2">...</p>
+                    <footer className="flex justify-between text-sm">
+                      <span>{`Pontos: ${product.pontos}`}</span>
+                      <div>
+                        <button
+                          className="ml-1 bg-blue-500 text-white px-2 py-1 rounded"
+                          onClick={() => handleAddPoint(product.id)}
+                          disabled={
+                            pointsAdded[product.id]?.length >= 4 &&
+                            Date.now() - (pointsAdded[product.id]?.[0] || 0) <=
+                              2 * 60 * 1000
+                          }
                         >
-                          +1
-                        </span>
-                      ))}
+                          +1 Ponto
+                        </button>
+                        <button
+                          className="ml-1 bg-red-500 text-white px-2 py-1 rounded"
+                          onClick={() => handleRemovePoint(product.id)}
+                          disabled={
+                            pointsAdded[product.id]?.length === 0 ||
+                            Date.now() -
+                              pointsAdded[product.id]?.[
+                                pointsAdded[product.id].length - 1
+                              ] >
+                              60 * 1000
+                          }
+                        >
+                          -1 Ponto
+                        </button>
+                      </div>
+                    </footer>
+                    <div className="p-3">
+                      {pointsAdded[product.id] &&
+                        pointsAdded[product.id].map((timestamp, index) => (
+                          <span
+                            key={index}
+                            className="ml-1 bg-gray-500 text-white px-2 py-1 rounded transition-all duration-300"
+                            style={{
+                              opacity:
+                                Date.now() - timestamp > 60 * 1000 ? 0 : 1,
+                              transform:
+                                Date.now() - timestamp > 60 * 1000
+                                  ? "translateY(-10px)"
+                                  : "translateY(0)",
+                            }}
+                          >
+                            +1
+                          </span>
+                        ))}
+                    </div>
                   </div>
-                </div>
-              </section>
+                </section>
+              </>
             ))
           ) : (
             <p>No products found.</p>
