@@ -12,11 +12,14 @@ import { useLocation } from "react-router-dom";
 import { api } from "../lib/axios";
 import { useTheme } from "../Context/ThemeContext";
 
+interface Point {}
+
 interface Product {
   id: number;
   nome: string;
   idade: number;
   pontos: number;
+  points: Point[];
 }
 
 export function Header() {
@@ -25,6 +28,7 @@ export function Header() {
   const { darkMode } = useTheme();
   const [isEditing, setIsEditing] = useState(false);
   const [currentProduct, setCurrentProduct] = useState<Product | null>(null);
+  const [products, setProducts] = useState<Product[]>([]);
 
   const location = useLocation();
   const path = location.pathname;
@@ -59,19 +63,42 @@ export function Header() {
   const handleClose = () => setOpen(false);
 
   const handleCreate = () => {
-    setCurrentProduct({ id: 0, nome: "", idade: 0, pontos: 0 });
-    setIsEditing(false); // Garantindo que não estamos no modo de edição
+    setCurrentProduct({ id: 0, nome: "", idade: 0, pontos: 0, points: [] });
+    setIsEditing(false);
     setOpen(true);
   };
+
+  const handlePointsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const numberOfPoints = Number(e.target.value);
+  
+    setCurrentProduct((prevProduct) => {
+      if (!prevProduct) return null;
+  
+      // Cria um novo array de pontos com o número especificado
+      const pointsArray = new Array(numberOfPoints).fill({});
+  
+      return {
+        ...prevProduct,
+        points: pointsArray, // Substitui o array de 'points' existente
+      };
+    });
+  };
+  // const numberOfPoints = Number(e.target.value);
+  // const pointsArray = new Array(numberOfPoints).fill({});
+
+  // const productToSave = {
+  //   ...currentProduct,
+  //   points: pointsArray, // Garante que o campo 'points' seja um array de objetos vazios
+  // };
 
   const handleSave = async () => {
     if (currentProduct) {
       try {
         if (!isEditing) {
           // Adiciona nova criança
-          const response = await api.post("/children", currentProduct);
-          // setProducts((prev) => [...prev, response.data]);
-          console.log(response)
+          const response = await api.post("/children", [currentProduct]);
+          setProducts((prev) => [...prev, response.data]);
+          console.log(response, products);
         }
         handleClose();
       } catch (error) {
@@ -79,6 +106,7 @@ export function Header() {
       }
     }
   };
+  
 
   return (
     <>
@@ -164,13 +192,12 @@ export function Header() {
                 fullWidth
                 margin="normal"
                 type="number"
-                value={currentProduct.pontos || ""}
-                onChange={(e) =>
-                  setCurrentProduct({
-                    ...currentProduct,
-                    pontos: Number(e.target.value),
-                  })
+                value={
+                  Array.isArray(currentProduct.points)
+                    ? currentProduct.points.length
+                    : 0
                 }
+                onChange={handlePointsChange}
               />
               <Button
                 type="submit"

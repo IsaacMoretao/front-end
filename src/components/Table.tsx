@@ -311,7 +311,7 @@ export function Table({
                         disabled={
                           pointsAdded[product.id]?.length >= 4 &&
                           Date.now() - (pointsAdded[product.id]?.[0] || 0) <=
-                            60 * 1000
+                          5 * 60 * 60 * 1000
                         }
                       >
                         +1 ponto

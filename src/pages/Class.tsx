@@ -52,7 +52,6 @@ export function Class({ min, max }: Class) {
     null
   );
   const [isPopupOpen, setIsPopupOpen] = useState(false);
-  // const [pointsAdded, setPointsAdded] = useState<PointsAdded>({});
   const ITEMS_PER_PAGE = 10;
 
   const handleOpenPopup = (id: number) => {
@@ -70,8 +69,8 @@ export function Class({ min, max }: Class) {
       const response = await api.get("/children/filterByAge", {
         params: { minAge: min, maxAge: max },
       });
-
-      console.log(response.data); // Verifique o que está sendo retornado
+      // console.log(response)
+      // setTotalProductsCount(response.data.length);
       if (Array.isArray(response.data)) {
         return response.data;
       } else {
@@ -205,25 +204,31 @@ export function Class({ min, max }: Class) {
   };
 
   const fetchMoreData = () => {
+    // Incrementa a página para carregar novos dados
     const nextPage = page + 1;
-    const filteredProducts = filterProducts();
+    const filteredProducts = filterProducts(); // Produtos filtrados pelo termo de busca
     const newProducts = filteredProducts.slice(
       nextPage * ITEMS_PER_PAGE,
       (nextPage + 1) * ITEMS_PER_PAGE
     );
-
-    if (newProducts.length === 0) {
+  
+    // Verifica se todos os produtos já foram carregados
+    if (displayedProducts.length >= filteredProducts.length) {
       setHasMore(false);
       return;
     }
-
+  
+    // Atualiza a lista de produtos exibidos e a página
     setDisplayedProducts((prevProducts) => [...prevProducts, ...newProducts]);
     setPage(nextPage);
   };
 
   useEffect(() => {
+    // Quando `searchTerm` ou `products` mudam, reinicie o scroll infinito
     const filteredProducts = filterProducts();
-    setDisplayedProducts(filteredProducts);
+    setDisplayedProducts(filteredProducts.slice(0, ITEMS_PER_PAGE));
+    setPage(0); // Reinicia a página
+    setHasMore(filteredProducts.length > ITEMS_PER_PAGE); // Atualiza `hasMore` baseado na quantidade de produtos
   }, [searchTerm, products]);
 
   const handlePointsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -244,78 +249,76 @@ export function Class({ min, max }: Class) {
 
   return (
     <>
-      <InfiniteScroll
-        dataLength={displayedProducts.length}
-        next={fetchMoreData}
-        hasMore={hasMore}
-        loader={<h4>Loading...</h4>}
-        endMessage={<p>No more products to display</p>}
-        scrollThreshold={0.1}
+      <main
+        className={`p-16 lg:ml-16 min-h-[95vh] max-md:hidden shadow-md ${
+          darkMode ? "bg-gray-900" : "bg-gray-100"
+        }`}
       >
-        <main
-          className={`p-16 lg:ml-16 min-h-[95vh] max-md:hidden shadow-md ${
-            darkMode ? "bg-gray-900" : "bg-gray-100"
+        <div
+          className={`rounded-2xl h-full p-5 ${
+            darkMode ? "bg-gray-800" : "bg-white"
           }`}
         >
-          <div
-            className={`rounded-2xl h-full p-5 ${
-              darkMode ? "bg-gray-800" : "bg-white"
-            }`}
-          >
-            <header>
-              <div className="flex gap-3 mb-3">
-                {state.level != "ADMIN" ? (
-                  <button
-                    onClick={handleEdit}
-                    disabled={selectedItems.length !== 1}
-                    className={`${
-                      selectedItems.length !== 1
-                        ? "opacity-50 cursor-not-allowed"
-                        : ""
-                    }`}
-                  >
-                    <PencilSimple size={35} color="#5C46B2" />
-                  </button>
-                ) : (
-                  <button className="opacity-50 cursor-not-allowed">
-                    <UserCirclePlus size={35} color="#5C46B2" />
-                  </button>
-                )}
-                <button onClick={handleCreate} className="px-4 py-2">
-                  <NotePencil size={35} color="#5C46B2" weight="duotone" />
+          <header>
+            <div className="flex gap-3 mb-3">
+              {state.level != "ADMIN" ? (
+                <button
+                  onClick={handleEdit}
+                  disabled={selectedItems.length !== 1}
+                  className={`${
+                    selectedItems.length !== 1
+                      ? "opacity-50 cursor-not-allowed"
+                      : ""
+                  }`}
+                >
+                  <PencilSimple size={35} color="#5C46B2" />
                 </button>
-                {state.level != "ADMIN" || state.token === "" ? (
-                  <button
-                    onClick={() => handleDelete(selectedItems)}
-                    disabled={selectedItems.length === 0}
-                    className={`${
-                      selectedItems.length === 0
-                        ? "opacity-50 cursor-not-allowed"
-                        : ""
-                    }`}
-                  >
-                    <Trash size={36} color="#5C46B2" weight="duotone" />
-                  </button>
-                ) : (
-                  <button className="opacity-50 cursor-not-allowed">
-                    <Trash size={36} color="#5C46B2" weight="duotone" />
-                  </button>
-                )}
-              </div>
-              <Table
-                selectedItems={selectedItems}
-                setSelectedItems={setSelectedItems}
-                onSelectItem={handleSelectItem}
-                minAge={min}
-                maxAge={max}
-              />
-            </header>
-          </div>
-        </main>
-        <div
-          className={`md:hidden p-5 ${
-            darkMode ? "bg-gray-900" : "bg-gray-100"
-          }`}
+              ) : (
+                <button className="opacity-50 cursor-not-allowed">
+                  <UserCirclePlus size={35} color="#5C46B2" />
+                </button>
+              )}
+              <button onClick={handleCreate} className="px-4 py-2">
+                <NotePencil size={35} color="#5C46B2" weight="duotone" />
+              </button>
+              {state.level != "ADMIN" || state.token === "" ? (
+                <button
+                  onClick={() => handleDelete(selectedItems)}
+                  disabled={selectedItems.length === 0}
+                  className={`${
+                    selectedItems.length === 0
+                      ? "opacity-50 cursor-not-allowed"
+                      : ""
+                  }`}
+                >
+                  <Trash size={36} color="#5C46B2" weight="duotone" />
+                </button>
+              ) : (
+                <button className="opacity-50 cursor-not-allowed">
+                  <Trash size={36} color="#5C46B2" weight="duotone" />
+                </button>
+              )}
+            </div>
+            <Table
+              selectedItems={selectedItems}
+              setSelectedItems={setSelectedItems}
+              onSelectItem={handleSelectItem}
+              minAge={min}
+              maxAge={max}
+            />
+          </header>
+        </div>
+      </main>
+      <div
+        className={`md:hidden p-5 ${darkMode ? "bg-gray-900" : "bg-gray-100"}`}
+      >
+        <InfiniteScroll
+          dataLength={displayedProducts.length}
+          next={fetchMoreData}
+          hasMore={hasMore}
+          loader={<h4>Loading...</h4>}
+          endMessage={<></>}
+          scrollThreshold={0.9}
         >
           <TextField
             id="search"
@@ -326,134 +329,138 @@ export function Class({ min, max }: Class) {
             value={searchTerm}
             className="mb-4"
           />
-          {displayedProducts.length > 0 ? (
-            displayedProducts.map((product) => (
-              <>
-                {isPopupOpen && selectedProductId === product.id && (
-                  <PopupDetails
-                    id={selectedProductId}
-                    onClose={handleClosePopup}
-                  />
-                )}
-                <section
-                  key={product.id}
-                  className={`lg:hidden flex p-4 rounded-lg shadow-md relative my-5 ${
-                    darkMode
-                      ? "bg-gray-800 text-gray-100"
-                      : "bg-white text-gray-900"
-                  }`}
-                >
-                  <div className="flex-grow pl-4">
-                    <header className="flex justify-between items-center mb-2">
-                      <h2 className="font-semibold text-sm">{product.nome}</h2>
-                      <div className="flex items-center space-x-2">
-                        <span className="text-xs">{`Idade: ${product.idade} anos`}</span>
-                        <div className="relative">
-                          <button
-                            onClick={() => toggleMenu(product.id)}
-                            className="focus:outline-none"
-                          >
-                            &#x22EE;
-                          </button>
-                          {menuVisibleId === product.id && (
-                            <div className="absolute right-0 mt-2 w-32 bg-white border rounded-md shadow-lg z-10">
-                              {state.level != "ADMIN" ? (
-                                <>
 
-                                  
-                                </>
-                              ) : (
-                                <>
-                                  <button
-                                    onClick={() => {
-                                      handleEditMobille(product);
-                                      setMenuVisibleId(null);
-                                    }}
-                                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                                  >
-                                    Editar
-                                  </button>
-                                  <button
-                                    onClick={() => {
-                                      handleDelete([product.id]);
-                                      setMenuVisibleId(null);
-                                    }}
-                                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                                  >
-                                    Excluir
-                                  </button>
-                                </>
-                              )}
-                              <button
-                                onClick={() => handleOpenPopup(product.id)}
-                                className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                              >
-                                Info
-                              </button>
-                            </div>
-                          )}
+          <>
+            {displayedProducts.length > 0 ? (
+              displayedProducts.map((product) => (
+                <>
+                  {isPopupOpen && selectedProductId === product.id && (
+                    <PopupDetails
+                      id={selectedProductId}
+                      onClose={handleClosePopup}
+                    />
+                  )}
+                  <section
+                    key={product.id}
+                    className={`lg:hidden flex p-4 rounded-lg shadow-md relative my-5 ${
+                      darkMode
+                        ? "bg-gray-800 text-gray-100"
+                        : "bg-white text-gray-900"
+                    }`}
+                  >
+                    <div className="flex-grow pl-4">
+                      <header className="flex justify-between items-center mb-2">
+                        <h2 className="font-semibold text-sm">
+                          {product.nome}
+                        </h2>
+                        <div className="flex items-center space-x-2">
+                          <span className="text-xs">{`Idade: ${product.idade} anos`}</span>
+                          <div className="relative">
+                            <button
+                              onClick={() => toggleMenu(product.id)}
+                              className="focus:outline-none"
+                            >
+                              &#x22EE;
+                            </button>
+                            {menuVisibleId === product.id && (
+                              <div className="absolute right-0 mt-2 w-32 bg-white border rounded-md shadow-lg z-10">
+                                {state.level != "ADMIN" ? (
+                                  <></>
+                                ) : (
+                                  <>
+                                    <button
+                                      onClick={() => {
+                                        handleEditMobille(product);
+                                        setMenuVisibleId(null);
+                                      }}
+                                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                    >
+                                      Editar
+                                    </button>
+                                    <button
+                                      onClick={() => {
+                                        handleDelete([product.id]);
+                                        setMenuVisibleId(null);
+                                      }}
+                                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                    >
+                                      Excluir
+                                    </button>
+                                  </>
+                                )}
+                                <button
+                                  onClick={() => handleOpenPopup(product.id)}
+                                  className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                >
+                                  Info
+                                </button>
+                              </div>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    </header>
-                    <p className="text-sm mb-2">...</p>
-                    <footer className="flex justify-between text-sm">
-                      <span>{`Pontos: ${product.pontos}`}</span>
-                      <div>
-                        <button
-                          className="ml-1 bg-blue-500 text-white px-2 py-1 rounded"
-                          onClick={() => handleAddPoint(product.id)}
-                          disabled={
-                            pointsAdded[product.id]?.length >= 4 &&
-                            Date.now() - (pointsAdded[product.id]?.[0] || 0) <=
-                              2 * 60 * 1000
-                          }
-                        >
-                          +1 Ponto
-                        </button>
-                        <button
-                          className="ml-1 bg-red-500 text-white px-2 py-1 rounded"
-                          onClick={() => handleRemovePoint(product.id)}
-                          disabled={
-                            pointsAdded[product.id]?.length === 0 ||
-                            Date.now() -
-                              pointsAdded[product.id]?.[
-                                pointsAdded[product.id].length - 1
-                              ] >
-                              60 * 1000
-                          }
-                        >
-                          -1 Ponto
-                        </button>
-                      </div>
-                    </footer>
-                    <div className="p-3">
-                      {pointsAdded[product.id] &&
-                        pointsAdded[product.id].map((timestamp, index) => (
-                          <span
-                            key={index}
-                            className="ml-1 bg-gray-500 text-white px-2 py-1 rounded transition-all duration-300"
-                            style={{
-                              opacity:
-                                Date.now() - timestamp > 60 * 1000 ? 0 : 1,
-                              transform:
-                                Date.now() - timestamp > 60 * 1000
-                                  ? "translateY(-10px)"
-                                  : "translateY(0)",
-                            }}
+                      </header>
+                      <p className="text-sm mb-2">...</p>
+                      <footer className="flex justify-between text-sm">
+                        <span>{`Pontos: ${product.pontos}`}</span>
+                        <div>
+                          <button
+                            className="ml-1 bg-blue-500 text-white px-2 py-1 rounded"
+                            onClick={() => handleAddPoint(product.id)}
+                            disabled={
+                              pointsAdded[product.id]?.length >= 4 &&
+                              Date.now() -
+                                (pointsAdded[product.id]?.[0] || 0) <=
+                                2 * 60 * 1000
+                            }
                           >
-                            +1
-                          </span>
-                        ))}
+                            +1 Ponto
+                          </button>
+                          <button
+                            className="ml-1 bg-red-500 text-white px-2 py-1 rounded"
+                            onClick={() => handleRemovePoint(product.id)}
+                            disabled={
+                              pointsAdded[product.id]?.length === 0 ||
+                              Date.now() -
+                                pointsAdded[product.id]?.[
+                                  pointsAdded[product.id].length - 1
+                                ] >
+                                60 * 1000
+                            }
+                          >
+                            -1 Ponto
+                          </button>
+                        </div>
+                      </footer>
+                      <div className="p-3">
+                        {pointsAdded[product.id] &&
+                          pointsAdded[product.id].map((timestamp, index) => (
+                            <span
+                              key={index}
+                              className="ml-1 bg-gray-500 text-white px-2 py-1 rounded transition-all duration-300"
+                              style={{
+                                opacity:
+                                  Date.now() - timestamp > 60 * 1000 ? 0 : 1,
+                                transform:
+                                  Date.now() - timestamp > 60 * 1000
+                                    ? "translateY(-10px)"
+                                    : "translateY(0)",
+                              }}
+                            >
+                              +1
+                            </span>
+                          ))}
+                      </div>
                     </div>
-                  </div>
-                </section>
-              </>
-            ))
-          ) : (
-            <p>No products found.</p>
-          )}
-        </div>
-      </InfiniteScroll>
+                  </section>
+                </>
+              ))
+            ) : (
+              <p>No products found.</p>
+            )}
+          </>
+        </InfiniteScroll>
+      </div>
+
       <Modal
         open={open}
         onClose={handleClose}
