@@ -75,6 +75,7 @@ export function Table({
   const [selectedProductId, setSelectedProductId] = useState<number | null>(
     null
   );
+  const POINT_LIMIT_TIME = Number(import.meta.env.VITE_POINT_LIMIT_TIME) || 18000000;
 
   // useEffect(() => {
   //   const storedPoints = localStorage.getItem('pointsAdded');
@@ -82,25 +83,24 @@ export function Table({
   //     setPointsAdded(JSON.parse(storedPoints));
   //   }
   // }, []);
-  
 
   // const handleAddPoint = async (productId: number) => {
   //   try {
   //     const response = await api.post(`/addPoint/${productId}`);
-      
+
   //     if (response.status === 201) {
   //       setPointsAdded((prevPoints) => {
   //         const currentTime = Date.now();
   //         const updatedPoints = prevPoints[productId] || [];
-          
+
   //         const filteredPoints = updatedPoints.filter(
   //           (timestamp) => currentTime - timestamp <= 60 * 1000
   //         );
-  
+
   //         if (filteredPoints.length < 4) {
   //           filteredPoints.push(currentTime);
   //           const newPointsAdded = { ...prevPoints, [productId]: filteredPoints };
-  //           localStorage.setItem('pointsAdded', JSON.stringify(newPointsAdded)); 
+  //           localStorage.setItem('pointsAdded', JSON.stringify(newPointsAdded));
   //           return newPointsAdded;
   //         }
   //         return prevPoints;
@@ -109,12 +109,12 @@ export function Table({
   //   } catch (error) {
   //     console.error('Erro ao adicionar ponto:', error);
   //   }
-  // };  
+  // };
 
   // const handleRemovePoint = async (productId: number) => {
   //   try {
   //     const response = await api.delete(`/deletePoint/${productId}`);
-      
+
   //     if (response.status === 200) {
   //       setPointsAdded((prevPoints) => {
   //         // Remove o ponto apenas se o tempo não tiver expirado
@@ -123,7 +123,7 @@ export function Table({
   //         const filteredPoints = updatedPoints.filter(
   //           (timestamp) => currentTime - timestamp <= 60 * 1000
   //         );
-  
+
   //         // Remove o ponto se ele estiver dentro do intervalo de tempo permitido
   //         if (filteredPoints.length > 0) {
   //           filteredPoints.shift(); // Remove o ponto mais antigo
@@ -131,7 +131,7 @@ export function Table({
   //           localStorage.setItem('pointsAdded', JSON.stringify(newPointsAdded)); // Atualiza o localStorage
   //           return newPointsAdded;
   //         }
-  
+
   //         return prevPoints;
   //       });
   //     } else {
@@ -311,14 +311,18 @@ export function Table({
                         disabled={
                           pointsAdded[product.id]?.length >= 4 &&
                           Date.now() - (pointsAdded[product.id]?.[0] || 0) <=
-                          5 * 60 * 60 * 1000
+                          POINT_LIMIT_TIME
                         }
                       >
                         +1 ponto
                       </button>
                       <button
                         className="ml-1 bg-red-500 text-white px-2 py-1 rounded"
-                         onClick={() => handleRemovePoint(product.id)}
+                        onClick={() => handleRemovePoint(product.id)}
+                        disabled={
+                          pointsAdded[product.id]?.length === 0 || 
+                          (Date.now() - (pointsAdded[product.id]?.slice(-1)[0] || 0) > POINT_LIMIT_TIME) 
+                        }
                       >
                         -1 ponto
                       </button>
@@ -344,9 +348,9 @@ export function Table({
                             className="ml-1 bg-blue-500 text-white px-2 py-1 rounded transition-all duration-300"
                             style={{
                               opacity:
-                                Date.now() - timestamp > 60 * 1000 ? 0 : 1,
+                                Date.now() - timestamp > POINT_LIMIT_TIME ? 0 : 1,
                               transform:
-                                Date.now() - timestamp > 60 * 1000
+                                Date.now() - timestamp > POINT_LIMIT_TIME
                                   ? "translateY(-10px)"
                                   : "translateY(0)",
                             }}

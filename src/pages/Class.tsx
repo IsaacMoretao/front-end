@@ -54,6 +54,8 @@ export function Class({ min, max }: Class) {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const ITEMS_PER_PAGE = 10;
 
+  const POINT_LIMIT_TIME = Number(import.meta.env.VITE_POINT_LIMIT_TIME) || 18000000;
+
   const handleOpenPopup = (id: number) => {
     setSelectedProductId(id);
     setIsPopupOpen(true);
@@ -408,9 +410,8 @@ export function Class({ min, max }: Class) {
                             onClick={() => handleAddPoint(product.id)}
                             disabled={
                               pointsAdded[product.id]?.length >= 4 &&
-                              Date.now() -
-                                (pointsAdded[product.id]?.[0] || 0) <=
-                                2 * 60 * 1000
+                              Date.now() - (pointsAdded[product.id]?.[0] || 0) <=
+                              POINT_LIMIT_TIME
                             }
                           >
                             +1 Ponto
@@ -419,12 +420,8 @@ export function Class({ min, max }: Class) {
                             className="ml-1 bg-red-500 text-white px-2 py-1 rounded"
                             onClick={() => handleRemovePoint(product.id)}
                             disabled={
-                              pointsAdded[product.id]?.length === 0 ||
-                              Date.now() -
-                                pointsAdded[product.id]?.[
-                                  pointsAdded[product.id].length - 1
-                                ] >
-                                60 * 1000
+                              pointsAdded[product.id]?.length === 0 || 
+                              (Date.now() - (pointsAdded[product.id]?.slice(-1)[0] || 0) > POINT_LIMIT_TIME) 
                             }
                           >
                             -1 Ponto
@@ -439,9 +436,9 @@ export function Class({ min, max }: Class) {
                               className="ml-1 bg-gray-500 text-white px-2 py-1 rounded transition-all duration-300"
                               style={{
                                 opacity:
-                                  Date.now() - timestamp > 60 * 1000 ? 0 : 1,
+                                  Date.now() - timestamp > POINT_LIMIT_TIME ? 0 : 1,
                                 transform:
-                                  Date.now() - timestamp > 60 * 1000
+                                  Date.now() - timestamp > POINT_LIMIT_TIME
                                     ? "translateY(-10px)"
                                     : "translateY(0)",
                               }}
