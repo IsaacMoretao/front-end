@@ -57,6 +57,16 @@ export function Config() {
 
   let canClick = true;
 
+  const ajuste = async () => {
+    try {
+      const response = await api.post(`/admin`);
+      const data = response.data;
+      console.log(data)
+    } catch (error) {
+      console.error("Erro ao Fazer ajuste de tabela:", error);
+    }
+  };
+
   const exportPDF = () => {
     if (!canClick) {
       return;
@@ -130,6 +140,14 @@ export function Config() {
         {state.level === "ADMIN" ? (
           <button className="flex flex-col justify-center gap-5 items-center py-3 rounded-lg border border-red-500 bg-red-500 bg-opacity-10 w-[90%] lg:ml-16">
             <h3 className="font-bold text-lg">ZONA PERIGOSA</h3>
+            <button
+              onClick={ajuste}
+              className={`py-3 rounded-lg bg-red-500 bg-opacity-10 w-[90%] shadow-md hover:bg-opacity-20 transition-all ${
+                darkMode ? "text-gray-300" : "text-gray-900"
+              }`}
+            >
+              AJUSTAR TABELA
+            </button>
             <button
               onClick={resetPoints}
               className={`py-3 rounded-lg bg-red-500 bg-opacity-10 w-[90%] shadow-md hover:bg-opacity-20 transition-all ${

@@ -7,10 +7,17 @@ import {
   TextField,
 } from "@mui/material";
 import { useState } from "react";
-import { ChalkboardTeacher, Gear, House, NotePencil } from "phosphor-react";
-import { useLocation } from "react-router-dom";
+import {
+  ChalkboardTeacher,
+  Gear,
+  House,
+  NotePencil,
+  PresentationChart,
+} from "phosphor-react";
+import { Link, useLocation } from "react-router-dom";
 import { api } from "../lib/axios";
 import { useTheme } from "../Context/ThemeContext";
+import { useAuth } from "../Context/AuthProvider";
 
 interface Point {}
 
@@ -32,8 +39,10 @@ export function Header() {
 
   const location = useLocation();
   const path = location.pathname;
+  const { state } = useAuth();
 
   let title = "";
+  let report = "";
 
   if (path.endsWith("/home") || path.endsWith("/")) {
     title = "HOME";
@@ -41,7 +50,12 @@ export function Header() {
     title = "SALA";
   } else if (path.endsWith("/config")) {
     title = "CONFIG";
-  } else {
+  } else if (path.endsWith("/admin")) {
+    title = "ADMIN";
+  } else if (path.endsWith("/Relatorio")) {
+    title = "RELATORIO";
+    report = "hidden";
+  }  else {
     title = "...";
   }
 
@@ -52,6 +66,8 @@ export function Header() {
       return <ChalkboardTeacher size={36} color="#fff" weight="duotone" />;
     } else if (path.endsWith("/config")) {
       return <Gear size={36} color="#fff" weight="duotone" />;
+    } else if (path.endsWith("/admin")) {
+      return <PresentationChart size={36} color="#fff" weight="duotone" />;
     }
     return null;
   };
@@ -70,16 +86,15 @@ export function Header() {
 
   const handlePointsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const numberOfPoints = Number(e.target.value);
-  
+
     setCurrentProduct((prevProduct) => {
       if (!prevProduct) return null;
-  
-      // Cria um novo array de pontos com o número especificado
+
       const pointsArray = new Array(numberOfPoints).fill({});
-  
+
       return {
         ...prevProduct,
-        points: pointsArray, // Substitui o array de 'points' existente
+        points: pointsArray,
       };
     });
   };
@@ -106,11 +121,10 @@ export function Header() {
       }
     }
   };
-  
 
   return (
     <>
-      <header className="z-50 max-lg:rounded-b-lg overflow-hidden lg:ml-16 right-0 top-0">
+      <header className={`z-50 max-lg:rounded-b-lg overflow-hidden lg:ml-16 right-0 top-0 ${report}`}>
         <Toolbar className="flex justify-between items-center h-16 bg-gradient-to-r from-purple-500 to-purple-400">
           <Typography
             component="div"
@@ -120,14 +134,31 @@ export function Header() {
 
             <p className={"mt-2 text-gray-100"}>{title}</p>
           </Typography>
-          <div className="flex items-center">
-            <button
-              onClick={handleCreate}
-              className="block lg:hidden px-4 py-2"
-            >
-              <NotePencil size={35} color="#5C46B2" weight="duotone" />
-            </button>
-          </div>
+          {path.startsWith("/sala") && (
+            <div className="flex items-center">
+              <button
+                onClick={handleCreate}
+                className="block lg:hidden px-4 py-2"
+              >
+                <NotePencil size={35} color="#5C46B2" weight="duotone" />
+              </button>
+            </div>
+          )}
+          {state.level === "ADMIN" ? (
+            <>
+              {path.startsWith("/admin") ? (
+                <Link to={"/home"}>
+                  <House size={35} color="#fff" weight="duotone" />
+                </Link>
+              ) : (
+                <Link to={"/admin"}>
+                  <PresentationChart size={35} color="#ede1ef" />
+                </Link>
+              )}
+            </>
+          ) : (
+            <></>
+          )}
         </Toolbar>
       </header>
       <Modal

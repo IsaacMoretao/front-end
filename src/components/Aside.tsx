@@ -1,7 +1,7 @@
 import { House, Database, SignOut, GearSix, Table } from "phosphor-react";
 import Logo from "../../assets/Logo.png";
 import { useAuth } from "../Context/AuthProvider";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 import { api } from "../lib/axios";
 import { useEffect, useState } from "react";
@@ -14,6 +14,7 @@ import {
 } from "@mui/material";
 import { useTheme } from "../Context/ThemeContext";
 
+
 interface Child {
   id: number;
   nome: string;
@@ -25,8 +26,14 @@ export function Aside() {
   const { darkMode } = useTheme();
   const [server, setServer] = useState(false);
   const { dispatch } = useAuth();
-
   const [children, setChildren] = useState<Child[]>([]);
+  const location = useLocation();
+  const path = location.pathname;
+
+  let report = "";
+  if (path.endsWith("/Relatorio")) {
+    report = "hidden";
+  }
 
   const handleLogout = () => {
     dispatch({ type: "LOGOUT" });
@@ -69,7 +76,7 @@ export function Aside() {
       <aside
         className={`fixed z-50 flex flex-col items-center py-3 left-0 lg:top-0 bottom-0 lg:w-16 max-lg:h-16 max-lg:right-0 ${
           darkMode ? "bg-gray-800" : "bg-white"
-        }`}
+        }, ${report}`}
       >
         <figure className="max-lg:hidden">
           <img src={Logo} alt="" className="h-12 mb-7 w-auto" />

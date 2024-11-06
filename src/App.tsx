@@ -1,8 +1,8 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { Login } from "./pages/Login";
 import { Home } from "./pages/Home";
 import { Class } from "./pages/Class";
-
+import { useTheme } from "./Context/ThemeContext";
 import { useAuth } from "./Context/AuthProvider";
 import { useEffect, useState } from "react";
 import { Loader } from "./pages/loader";
@@ -11,10 +11,13 @@ import { PageNotFound } from "./pages/PageNotFound";
 import { Header } from "./components/Header";
 import { Aside } from "./components/Aside";
 import { Config } from "./pages/Config";
+import { Admin } from "./pages/Admin";
+import { Relatorio } from "./pages/Relatorio";
 
 function App() {
   const { state, dispatch } = useAuth();
   const [loading, setLoading] = useState(true);
+  const { darkMode } = useTheme();
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -34,31 +37,36 @@ function App() {
         payload: {
           token,
           level: level ?? "",
+          userId: ""
         },
       });
     }
   }, []);
   return (
-    <>
+    <div className={`${darkMode ? "bg-gray-900" : "bg-gray-100"} font-Poppins`}>
       <Router>
-        {state.token === "" ? (
-          <>
-
-          </>
-        ) : (
+        {state.token && (
           <>
             <Header />
             <Aside />
           </>
         )}
+
         <Routes>
-          {state.token === null || state.token === "" ? (
+          {/* Rota "Relatório" acessível para todos */}
+          <Route
+            path="/relatorio"
+            element={loading ? <Loader /> : <Relatorio />}
+          />
+
+          {state.token === null ? (
             <>
               <Route path="/login" element={loading ? <Loader /> : <Login />} />
-              <Route path="*" element={<Login />} />
+              <Route path="/*" element={<Navigate to="/login" />} />
             </>
           ) : (
             <>
+              {/* Rotas acessíveis com token */}
               <Route path="/home" element={loading ? <Loader /> : <Home />} />
               <Route path="/loader" element={<Loader />} />
               <Route
@@ -86,12 +94,18 @@ function App() {
                 path="/config"
                 element={loading ? <Loader /> : <Config />}
               />
-              <Route path="*" element={<PageNotFound />} />
+              {state.level === "ADMIN" && (
+                <Route
+                  path="/admin"
+                  element={loading ? <Loader /> : <Admin />}
+                />
+              )}
+              <Route path="/*" element={<PageNotFound />} />
             </>
           )}
         </Routes>
       </Router>
-    </>
+    </div>
   );
 }
 

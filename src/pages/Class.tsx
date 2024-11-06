@@ -3,7 +3,6 @@ import {
   NotePencil,
   PencilSimple,
   Trash,
-  UserCirclePlus,
 } from "phosphor-react";
 import { Table } from "../components/Table";
 import { api } from "../lib/axios";
@@ -226,11 +225,10 @@ export function Class({ min, max }: Class) {
   };
 
   useEffect(() => {
-    // Quando `searchTerm` ou `products` mudam, reinicie o scroll infinito
     const filteredProducts = filterProducts();
     setDisplayedProducts(filteredProducts.slice(0, ITEMS_PER_PAGE));
-    setPage(0); // Reinicia a página
-    setHasMore(filteredProducts.length > ITEMS_PER_PAGE); // Atualiza `hasMore` baseado na quantidade de produtos
+    setPage(0); 
+    setHasMore(filteredProducts.length > ITEMS_PER_PAGE); 
   }, [searchTerm, products]);
 
   const handlePointsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -239,12 +237,11 @@ export function Class({ min, max }: Class) {
     setCurrentProduct((prevProduct) => {
       if (!prevProduct) return null;
 
-      // Cria um novo array de pontos com o número especificado
       const pointsArray = new Array(numberOfPoints).fill({});
 
       return {
         ...prevProduct,
-        points: pointsArray, // Substitui o array de 'points' existente
+        points: pointsArray,
       };
     });
   };
@@ -263,7 +260,7 @@ export function Class({ min, max }: Class) {
         >
           <header>
             <div className="flex gap-3 mb-3">
-              {state.level != "ADMIN" ? (
+              {state.level === "ADMIN" ? (
                 <button
                   onClick={handleEdit}
                   disabled={selectedItems.length !== 1}
@@ -277,13 +274,13 @@ export function Class({ min, max }: Class) {
                 </button>
               ) : (
                 <button className="opacity-50 cursor-not-allowed">
-                  <UserCirclePlus size={35} color="#5C46B2" />
+                  <PencilSimple size={35} color="#000" />
                 </button>
               )}
               <button onClick={handleCreate} className="px-4 py-2">
                 <NotePencil size={35} color="#5C46B2" weight="duotone" />
               </button>
-              {state.level != "ADMIN" || state.token === "" ? (
+              {state.level === "ADMIN" ? (
                 <button
                   onClick={() => handleDelete(selectedItems)}
                   disabled={selectedItems.length === 0}
@@ -330,6 +327,25 @@ export function Class({ min, max }: Class) {
             onChange={(e) => setSearchTerm(e.target.value)}
             value={searchTerm}
             className="mb-4"
+            InputProps={{
+              style: { color: darkMode ? "#f5f5f5" : "#1a1a1a" },
+            }}
+            InputLabelProps={{
+              style: { color: darkMode ? "#f5f5f5" : "#1a1a1a" },
+            }}
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                "& fieldset": {
+                  borderColor: darkMode ? "#f5f5f5" : "#1a1a1a",
+                },
+                "&:hover fieldset": {
+                  borderColor: darkMode ? "#ffffff" : "#000000",
+                },
+                "&.Mui-focused fieldset": {
+                  borderColor: darkMode ? "#ffffff" : "#000000",
+                },
+              },
+            }}
           />
 
           <>

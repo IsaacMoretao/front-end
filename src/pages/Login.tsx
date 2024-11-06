@@ -38,7 +38,7 @@ export function Login() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => { 
     e.preventDefault();
     try {
       const response = await fetch("https://backend-kids.onrender.com/login", {
@@ -53,13 +53,21 @@ export function Login() {
       }
       const responseData = await response.json();
       console.log("Resposta do servidor:", responseData);
-      const { token, level } = responseData;
+
+      // Verifique se `userId` realmente existe em `responseData`
+      const { token, level, userId } = responseData;
+      if (!userId) {
+        console.error("userId não foi encontrado na resposta do servidor");
+      }
+      const stringUserId = userId ? String(userId) : "";
+
       sessionStorage.setItem("token", token);
       dispatch({
         type: "LOGIN",
         payload: {
           token,
           level,
+          userId: stringUserId,
         },
       });
       navigate("/home");
@@ -68,6 +76,7 @@ export function Login() {
       setError("Erro ao fazer login. Por favor, tente novamente.");
     }
   };
+
 
   const handleProfessorLogin = () => {
     setEmail("verboaruja@kids.com");
