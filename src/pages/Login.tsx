@@ -53,15 +53,18 @@ export function Login() {
       }
       const responseData = await response.json();
       console.log("Resposta do servidor:", responseData);
-
-      // Verifique se `userId` realmente existe em `responseData`
+  
       const { token, level, userId } = responseData;
       if (!userId) {
         console.error("userId não foi encontrado na resposta do servidor");
       }
       const stringUserId = userId ? String(userId) : "";
-
-      sessionStorage.setItem("token", token);
+  
+      // Armazena no localStorage
+      localStorage.setItem("token", token);
+      localStorage.setItem("level", level);
+      localStorage.setItem("userId", stringUserId);
+  
       dispatch({
         type: "LOGIN",
         payload: {
@@ -75,9 +78,7 @@ export function Login() {
       console.error("Erro ao fazer login:", error);
       setError("Erro ao fazer login. Por favor, tente novamente.");
     }
-  };
-
-
+  };  
   const handleProfessorLogin = () => {
     setEmail("verboaruja@kids.com");
     setPassword("123456");

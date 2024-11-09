@@ -30,6 +30,7 @@ function App() {
   useEffect(() => {
     const token = localStorage.getItem("token");
     const level = localStorage.getItem("level");
+    const userId = localStorage.getItem("userId");
 
     if (token) {
       dispatch({
@@ -37,7 +38,7 @@ function App() {
         payload: {
           token,
           level: level ?? "",
-          userId: ""
+          userId: userId ?? "",
         },
       });
     }

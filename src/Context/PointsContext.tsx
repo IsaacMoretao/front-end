@@ -51,7 +51,6 @@ export const PointsProvider = ({ children }: PointsProviderProps) => {
   const handleAddPoint = async (productId: number) => {
     try {
       const response = await api.post(`/addPoint/${productId}/${state.userId}`);
-      console.log(state.userId);
 
       if (response.status === 200 || response.status === 201) {
         const currentTime = Date.now();
