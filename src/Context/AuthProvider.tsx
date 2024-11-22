@@ -41,9 +41,9 @@ function loadInitialState(): AuthState {
 }
 
 function authReducer(state: AuthState, action: AuthAction): AuthState {
+  console.log("Action dispatched:", action);
   switch (action.type) {
     case "LOGIN":
-      console.log("LOGIN action triggered", action.payload);
       localStorage.setItem("token", action.payload.token);
       localStorage.setItem("level", action.payload.level);
       localStorage.setItem("userId", action.payload.userId);
@@ -54,7 +54,6 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
         userId: action.payload.userId,
       };
     case "LOGOUT":
-      console.log("LOGOUT action triggered");
       localStorage.removeItem("token");
       localStorage.removeItem("level");
       localStorage.removeItem("userId");
@@ -63,6 +62,7 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
       return state;
   }
 }
+
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const [state, dispatch] = useReducer(authReducer, loadInitialState());

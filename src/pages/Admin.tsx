@@ -1,11 +1,13 @@
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import "../Stylles/CustomCalendar.css";
+
 import { useTheme } from "../Context/ThemeContext";
 import { CaretDown } from "phosphor-react";
 import { useEffect, useState } from "react";
+
 import { api } from "../lib/axios";
-import { TextField } from "@mui/material";
+import { Box, Button, Modal, TextField } from "@mui/material";
 
 type PresenceRecord = { [date: string]: number };
 type User = {
@@ -59,7 +61,82 @@ export function Admin() {
   const [edit, setEdit] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredUsers, setFilteredUsers] = useState(users);
-  const today = new Date();
+  const [selectedUsers, setSelectedUsers] = useState<User[]>([]);
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [selectedDay, setSelectedDay] = useState<Date | null>(null);
+
+  const handleDayClickForBody = (day: Date) => {
+    setSelectedDay(day);
+    setIsPopupOpen(true);
+  };
+
+  const handleAddUser = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const userId = parseInt(event.target.value, 10);
+    const user = users.find((u) => u.id === userId);
+
+    if (user && !selectedUsers.some((u) => u.id === user.id)) {
+      setSelectedUsers((prevSelected) => [...prevSelected, user]);
+    }
+  };
+
+  const handleRemoveUser = (id: number) => {
+    setSelectedUsers((prevSelected) =>
+      prevSelected.filter((user) => user.id !== id)
+    );
+  };
+
+  const handleClosePopup = () => {
+    setIsPopupOpen(false);
+    setSelectedDay(null);
+  };
+
+  const handleSave = async () => {
+    if (!selectedDay || selectedUsers.length === 0) {
+      console.warn("Nenhum dia ou usuário selecionado.");
+      return;
+    }
+
+    try {
+      const date = selectedDay.toISOString();
+      const updatedUsers = await Promise.all(
+        users.map((user) => {
+          // Apenas processa usuários selecionados
+          if (!selectedUsers.some((selected) => selected.id === user.id)) {
+            return user; // Retorna o usuário sem alterações se não estiver selecionado
+          }
+
+          return (async () => {
+            try {
+              const response = await api.post(`/AddPresence/${user.id}`, {
+                createdAt: date,
+              });
+
+              const newPresence = {
+                id: response.data.id, // O id vindo do backend
+                createdAt: date,
+              };
+
+              return {
+                ...user,
+                presence: [...(user.presence || []), newPresence],
+              };
+            } catch (error) {
+              console.error(
+                `Erro ao adicionar presença para o usuário ${user.id}:`,
+                error
+              );
+              return user; // Retorna o usuário sem alterações em caso de erro
+            }
+          })();
+        })
+      );
+
+      setUsers(updatedUsers); // Atualiza o estado com a lista de usuários modificados
+      handleClosePopup();
+    } catch (error) {
+      console.error("Erro ao salvar presenças:", error);
+    }
+  };
 
   function CreateOrExclused() {
     if (!edit) {
@@ -171,6 +248,8 @@ export function Admin() {
     }
   };
 
+  const today = new Date();
+
   const disableFutureDays = ({ date }: { date: Date }) => {
     return date > today;
   };
@@ -222,6 +301,95 @@ export function Admin() {
           darkMode ? "bg-gray-900" : "bg-gray-100"
         }`}
       >
+        <div className="p-4">
+          <Calendar
+            onClickDay={handleDayClickForBody}
+            className={`${
+              darkMode
+                ? "bg-gray-900 text-gray-100 border-gray-700"
+                : "bg-gray-100 text-gray-900 border-gray-300"
+            }`}
+          />
+
+          <Modal open={isPopupOpen} onClose={handleClosePopup}>
+            <Box
+              className="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-md shadow-lg max-w-full sm:max-w-lg"
+              sx={{
+                width: "90%",
+                maxWidth: "400px",
+                margin: "auto",
+                marginTop: "10%",
+              }}
+            >
+              <h2 className="text-base sm:text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100 text-center">
+                Selecionar usuários para o dia <br />
+                {selectedDay?.toLocaleDateString()}
+              </h2>
+
+              <div className="flex flex-col gap-4 p-4 sm:p-6 bg-gray-50 dark:bg-gray-700 rounded-md shadow-inner">
+                <label
+                  htmlFor="user-select"
+                  className="text-sm sm:text-base text-gray-900 dark:text-gray-100 font-semibold"
+                >
+                  Adicionar usuário:
+                </label>
+                <select
+                  id="user-select"
+                  onChange={handleAddUser}
+                  className="w-full sm:max-w-md p-2 border rounded-md bg-gray-100 dark:bg-gray-600 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-300"
+                >
+                  <option value="">Selecione um usuário</option>
+                  {users.map((user) => (
+                    <option key={user.id} value={user.id}>
+                      {user.username}
+                    </option>
+                  ))}
+                </select>
+
+                <h3 className="mt-4 text-sm sm:text-lg font-medium text-gray-800 dark:text-gray-100">
+                  Usuários selecionados:
+                </h3>
+                <ul className="flex flex-wrap gap-2 h-32 overflow-y-auto mt-2">
+                  {selectedUsers.map((user) => (
+                    <li
+                      key={user.id}
+                      className="flex items-center bg-blue-500 text-white rounded-full px-3 py-1 sm:px-4 sm:py-2 shadow-sm"
+                    >
+                      <span className="mr-2 text-xs sm:text-sm">
+                        {user.username}
+                      </span>
+                      <button
+                        onClick={() => handleRemoveUser(user.id)}
+                        className="text-red-500 hover:text-red-700 text-xs sm:text-sm font-bold"
+                      >
+                        X
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="mt-4 flex justify-end gap-2">
+                <Button
+                  variant="outlined"
+                  color="secondary"
+                  onClick={handleClosePopup}
+                  sx={{ fontSize: { xs: "0.75rem", sm: "1rem" } }}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={handleSave}
+                  sx={{ fontSize: { xs: "0.75rem", sm: "1rem" } }}
+                >
+                  Salvar
+                </Button>
+              </div>
+            </Box>
+          </Modal>
+        </div>
         <div className="flex gap-3 p-3 items-center">
           <TextField
             id="search"
