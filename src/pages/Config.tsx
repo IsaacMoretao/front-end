@@ -82,7 +82,7 @@ export function Config() {
 
     const doc = new jsPDF();
     autoTable(doc, {
-      head: [['Nome', 'Idade', 'Ponints']],
+      head: [['Nome', 'Idade', 'Points']],
       body: children.map((child) => [child.nome, child.idade, child.points.length]),
     });
     doc.save("children.pdf");
