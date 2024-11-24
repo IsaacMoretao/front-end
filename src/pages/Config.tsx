@@ -80,15 +80,20 @@ export function Config() {
       return;
     }
 
-    const doc = new jsPDF();
-    autoTable(doc, {
-      head: [['Nome', 'Idade', 'Points']],
-      body: children.map((child) => [child.nome, child.idade, child.points.length]),
-    });
-    doc.save("children.pdf");
-    setTimeout(() => {
-      canClick = true;
-    }, 3000);
+    try {
+      const doc = new jsPDF();
+      autoTable(doc, {
+        head: [["Nome", "Idade", "Poits"]],
+        body: children.map((child) => [
+          child.nome,
+          child.idade,
+          child.points.length, // Alterado de `poits.length` para `points.length`
+        ]),
+      });
+      doc.save("children.pdf");
+    } catch (error) {
+      console.error("Erro ao gerar o PDF:", error);
+    }
   };
 
   return (
@@ -184,7 +189,7 @@ export function Config() {
                 <TableRow key={child.id}>
                   <TableCell>{child.nome}</TableCell>
                   <TableCell align="right">{child.idade}</TableCell>
-                  <TableCell align="right">{child.points.length}</TableCell>
+                  <TableCell align="right">{child.points.length}</TableCell> {/* Contando o número de objetos em "points" */}
                 </TableRow>
               ))}
             </TableBody>
