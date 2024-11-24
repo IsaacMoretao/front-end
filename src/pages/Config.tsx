@@ -67,34 +67,37 @@ export function Config() {
     }
   };
 
-  const exportPDF = () => {
-    if (!canClick) {
-      return;
-    }
-    canClick = false;
+const exportPDF = () => {
+  if (!canClick) {
+    return;
+  }
+  canClick = false;
 
-    // Verifica se há dados na tabela
-    if (children.length === 0) {
-      console.error("No data available to export");
-      canClick = true;
-      return;
-    }
+  // Verifica se há dados na tabela
+  if (children.length === 0) {
+    console.error("No data available to export");
+    canClick = true;
+    return;
+  }
 
-    try {
-      const doc = new jsPDF();
-      autoTable(doc, {
-        head: [["Nome", "Idade", "Poits"]],
-        body: children.map((child) => [
-          child.nome,
-          child.idade,
-          child.points.length, // Alterado de `poits.length` para `points.length`
-        ]),
-      });
-      doc.save("children.pdf");
-    } catch (error) {
-      console.error("Erro ao gerar o PDF:", error);
-    }
-  };
+  try {
+    const doc = new jsPDF();
+    autoTable(doc, {
+      head: [["Nome", "Idade", "Pontos"]],
+      body: children.map((child) => [
+        child.nome,
+        child.idade,
+        child.points.length > 0 
+          ? child.points.reduce((total, point) => total + 1, 0) // Soma os pontos
+          : 0, // Caso 
+      ]),
+    });
+    doc.save("children.pdf");
+  } catch (error) {
+    console.error("Erro ao gerar o PDF:", error);
+  }
+};
+
 
   return (
     <>
