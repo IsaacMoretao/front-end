@@ -17,7 +17,7 @@ interface Child {
   id: number;
   nome: string;
   idade: number;
-  pontos: number;
+  points: number;
 }
 
 export function Config() {
@@ -82,8 +82,8 @@ export function Config() {
 
     const doc = new jsPDF();
     autoTable(doc, {
-      head: [['Nome', 'Idade', 'Pontos']],
-      body: children.map((child) => [child.nome, child.idade, child.pontos]),
+      head: [['Nome', 'Idade', 'Ponints']],
+      body: children.map((child) => [child.nome, child.idade, child.points.length]),
     });
     doc.save("children.pdf");
     setTimeout(() => {
