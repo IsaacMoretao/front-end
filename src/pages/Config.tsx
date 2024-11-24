@@ -17,7 +17,7 @@ interface Child {
   id: number;
   nome: string;
   idade: number;
-  points: Array<{ id: number; createdAt: string; classId: number }>
+  points: Array;
 }
 
 export function Config() {
