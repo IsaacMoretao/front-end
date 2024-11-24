@@ -184,7 +184,7 @@ export function Config() {
                 <TableRow key={child.id}>
                   <TableCell>{child.nome}</TableCell>
                   <TableCell align="right">{child.idade}</TableCell>
-                  <TableCell align="right">{child.pontos}</TableCell>
+                  <TableCell align="right">{child.points.length}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
