@@ -87,16 +87,17 @@ const exportPDF = () => {
       body: children.map((child) => [
         child.nome,
         child.idade,
-        child.points.length > 0 
-          ? child.points.reduce((total, point) => total + 1, 0) // Soma os pontos
-          : 0, // Caso 
+        child.points.length, // Calcula a quantidade de objetos no array points
       ]),
     });
     doc.save("children.pdf");
   } catch (error) {
     console.error("Erro ao gerar o PDF:", error);
+  } finally {
+    canClick = true;
   }
 };
+
 
 
   return (
@@ -192,7 +193,7 @@ const exportPDF = () => {
                 <TableRow key={child.id}>
                   <TableCell>{child.nome}</TableCell>
                   <TableCell align="right">{child.idade}</TableCell>
-                  <TableCell align="right">{child.points.length}</TableCell> {/* Contando o número de objetos em "points" */}
+                  <TableCell align="right">{child.points.length}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
