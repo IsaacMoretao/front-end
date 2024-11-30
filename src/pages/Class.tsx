@@ -419,7 +419,7 @@ export function Class({ min, max }: Class) {
                       </header>
                       <p className="text-sm mb-2">...</p>
                       <footer className="flex justify-between text-sm">
-                        <span>{`Pontos: ${product.pontos}`}</span>
+                        <span>{`Pontos: ${product.points.length}`}</span>
                         <div>
                           <button
                             className="ml-1 bg-blue-500 text-white px-2 py-1 rounded"

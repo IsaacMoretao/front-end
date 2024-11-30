@@ -3,11 +3,25 @@ import "react-calendar/dist/Calendar.css";
 import "../Stylles/CustomCalendar.css";
 
 import { useTheme } from "../Context/ThemeContext";
-import { CaretDown } from "phosphor-react";
+import { CaretDown, Download, UserCirclePlus } from "phosphor-react";
 import { useEffect, useState } from "react";
 
 import { api } from "../lib/axios";
-import { Box, Button, Modal, TextField } from "@mui/material";
+import { Box, Button, Modal, TextField, Typography } from "@mui/material";
+import * as XLSX from 'xlsx';
+
+const style = {
+  position: 'absolute' as 'absolute',
+  top: '50%',
+  left: '50%',
+  transform: 'translate(-50%, -50%)',
+  width: '100%',
+  maxWidth: '500px', // Largura máxima para o modal
+  minWidth: '320px', // Largura mínima de 320px
+  bgcolor: 'background.paper',
+  boxShadow: 24,
+  p: 4,
+};
 
 type PresenceRecord = { [date: string]: number };
 type User = {
@@ -60,10 +74,80 @@ export function Admin() {
   const [users, setUsers] = useState<User[]>([]);
   const [edit, setEdit] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+
   const [filteredUsers, setFilteredUsers] = useState(users);
   const [selectedUsers, setSelectedUsers] = useState<User[]>([]);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
+
+  const [open, setOpen] = useState(false);
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+
+  const handleDownload = async () => {
+    try {
+      const { data } = await api.get('/listUsers')
+
+      // Filtra apenas o mês de interesse (exemplo: Novembro 2024)
+      const targetMonth = '2024-11'; // Mês e ano no formato AAAA-MM
+      const header = [`usuário`]; // Cabeçalho inicial
+      const rows: Record<string, string[]> = {}; // Armazena os dados por usuário
+
+      data.forEach((user: any) => {
+        const userRow: Record<string, number> = {}; // Contagem de presenças por dia
+
+        user.presence.forEach((presence: any) => {
+          const date = new Date(presence.createdAt);
+          const dayMonth = date.toISOString().slice(0, 10);
+
+          if (dayMonth.startsWith(targetMonth)) {
+            const day = `dia ${date.getDate()}`;
+            userRow[day] = (userRow[day] || 0) + 1;
+
+            if (!header.includes(`${day}: presença`)) {
+              header.push(`${day}: presença`);
+            }
+          }
+        });
+
+        // Converte os números para strings antes de adicionar à linha
+        rows[user.username] = header.slice(1).map((day) => String(userRow[day.split(':')[0]] || 0));
+      });
+
+      // Cria o formato de dados para a planilha
+      const sheetData = [
+        header, // Cabeçalho
+        ...Object.entries(rows).map(([username, presences]) => [username, ...presences]),
+      ];
+
+      // Cria a planilha
+      const worksheet = XLSX.utils.aoa_to_sheet(sheetData);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Presenças');
+
+      // Salva o arquivo Excel
+      XLSX.writeFile(workbook, 'Relatorio_Presencas_Novembro.xlsx');
+    } catch (error) {
+      console.error('Erro ao gerar relatório:', error);
+      alert('Não foi possível gerar o relatório. Tente novamente mais tarde.');
+    }
+  };
+  const handleOpenPopUp = () => setOpen(true);
+  const handleClose = () => setOpen(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+
+    try {
+      const response = await api.post('/register', { username, password, level: "USER" });
+      console.log('Usuário criado:', response.data);
+      handleClose();
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Erro ao criar usuário');
+    }
+  };
 
   const handleDayClickForBody = (day: Date) => {
     setSelectedDay(day);
@@ -301,6 +385,25 @@ export function Admin() {
           darkMode ? "bg-gray-900" : "bg-gray-100"
         }`}
       >
+        <header className={`flex gap-10 border-2 rounded-md shadow-lg w-min mr-4 ml-auto `}>
+          <button
+            className="hover:bg-gray-300 transition-all rounded-sm p-2"
+            onClick={handleOpenPopUp}
+          >
+            <UserCirclePlus size={36} color={
+              darkMode ? "#c1a2c8" : "#232323"
+            } />
+          </button>
+
+          <button
+            className="hover:bg-gray-300 transition-all rounded-sm p-2"
+            onClick={handleDownload}
+          >
+            <Download size={36} color={
+              darkMode ? "#c1a2c8" : "#232323"
+            } />
+          </button>
+        </header>
         <div className="p-4">
           <Calendar
             onClickDay={handleDayClickForBody}
@@ -502,6 +605,45 @@ export function Admin() {
           })
         )}
       </main>
+      <Modal open={open} onClose={handleClose}>
+        <Box sx={style}>
+          <Typography variant="h6" component="h2" gutterBottom>
+            Criar Usuário
+          </Typography>
+          <form onSubmit={handleSubmit}>
+            <TextField
+              fullWidth
+              label="Usuário"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              margin="normal"
+              required
+            />
+            <TextField
+              fullWidth
+              label="Senha"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              margin="normal"
+              required
+            />
+            {error && (
+              <Typography color="error" variant="body2" gutterBottom>
+                {error}
+              </Typography>
+            )}
+            <Box display="flex" justifyContent="space-between" mt={2}>
+              <Button variant="contained" color="secondary" onClick={handleClose}>
+                Cancelar
+              </Button>
+              <Button variant="contained" color="primary" type="submit">
+                Criar
+              </Button>
+            </Box>
+          </form>
+        </Box>
+      </Modal>
     </>
   );
 }

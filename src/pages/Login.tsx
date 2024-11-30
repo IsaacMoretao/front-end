@@ -14,6 +14,7 @@ import { useAuth } from "../Context/AuthProvider";
 import LoginImage from "../../assets/Logo.png";
 import Logo from "../../assets/LogoSmall.svg";
 import { api } from "../lib/axios";
+import { Database } from "phosphor-react";
 
 export function Login() {
   const [email, setEmail] = useState("");
@@ -21,24 +22,28 @@ export function Login() {
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const { dispatch } = useAuth();
-  const [server, setServer] = useState(false);
+  const [server, setServer] = useState<boolean | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [showPopup, setShowPopup] = useState(false);
 
   const verifyServer = async () => {
+    setIsLoading(true);
+    setShowPopup(false); // Garantir que o pop-up não fique visível durante novas tentativas
     try {
-      setServer(false);
       const response = await api.get(`/children/`);
-      if (response.data && response.data.children.length > 0) {
-        setServer(false);
-      } else {
-        setServer(true);
-      }
+      const hasChildren =
+        Array.isArray(response.data) && response.data.length > 0;
+      setServer(hasChildren);
     } catch (error) {
       setServer(false);
+      setShowPopup(true); // Mostra o pop-up caso ocorra um erro
       console.error("Erro ao verificar o servidor:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => { 
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
       const response = await fetch("https://backend-kids.onrender.com/login", {
@@ -53,18 +58,18 @@ export function Login() {
       }
       const responseData = await response.json();
       console.log("Resposta do servidor:", responseData);
-  
+
       const { token, level, userId } = responseData;
       if (!userId) {
         console.error("userId não foi encontrado na resposta do servidor");
       }
       const stringUserId = userId ? String(userId) : "";
-  
+
       // Armazena no localStorage
       localStorage.setItem("token", token);
       localStorage.setItem("level", level);
       localStorage.setItem("userId", stringUserId);
-  
+
       dispatch({
         type: "LOGIN",
         payload: {
@@ -78,7 +83,7 @@ export function Login() {
       console.error("Erro ao fazer login:", error);
       setError("Erro ao fazer login. Por favor, tente novamente.");
     }
-  };  
+  };
   const handleProfessorLogin = () => {
     setEmail("verboaruja@kids.com");
     setPassword("123456");
@@ -92,22 +97,22 @@ export function Login() {
             <img src={Logo} className="h-10 sm:h-12 md:h-14 lg:h-16" alt="" />
           </Typography>
           <div className="flex items-center">
-            {server ? (
-              <Button
-                color="error"
-                onClick={verifyServer}
-                className="hidden sm:block"
-              >
-                Servidor dormindo
-              </Button>
+            {isLoading ? (
+              <span
+                className={`loader inline-block w-5 h-5 border-2 border-t-2 border-t-transparent border-black rounded-full animate-spin`}
+              ></span>
             ) : (
-              <Button
-                color="success"
-                onClick={verifyServer}
-                className="hidden sm:block"
-              >
-                Acordar servidor
-              </Button>
+              <button onClick={verifyServer} className="flex items-center">
+                <Database
+                  size={35}
+                  color={server === true ? "#2cb438" : "#e46962"}
+                />
+                {server === true ? (
+                  <p className="text-green-500">Servidor OK</p>
+                ) : (
+                  <p className="text-red-500">Servidor com problema</p>
+                )}
+              </button>
             )}
           </div>
         </Toolbar>
@@ -132,8 +137,8 @@ export function Login() {
             {error && <p>{error}</p>}
             <form onSubmit={handleSubmit} style={{ width: "100%" }}>
               <TextField
-                type="email"
-                label="Email"
+                type="text"
+                label="Nome"
                 variant="outlined"
                 margin="normal"
                 value={email}
@@ -171,6 +176,21 @@ export function Login() {
           </Paper>
         </Grid>
       </Grid>
+      {showPopup && (
+        <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded shadow-md text-center">
+            <p className="text-red-600 font-bold">
+              O servidor não está funcionando!
+            </p>
+            <button
+              onClick={() => setShowPopup(false)}
+              className="mt-4 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+            >
+              Fechar
+            </button>
+          </div>
+        </div>
+      )}
     </Container>
   );
 }

@@ -1,26 +1,21 @@
-import { jsPDF } from "jspdf";
-import autoTable from "jspdf-autotable";
+import * as XLSX from 'xlsx';
 import { useEffect, useState } from "react";
 import { useAuth } from "../Context/AuthProvider";
 import { useTheme } from "../Context/ThemeContext";
 import { api } from "../lib/axios";
-import { DownloadSimple, Table } from "phosphor-react";
-import {
-  TableContainer,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
-} from "@mui/material";
+import { DownloadSimple} from "phosphor-react";
+
 
 interface Child {
   id: number;
   nome: string;
   idade: number;
-  pontos: number;
+  points: Array<Object>;
 }
 
 export function Config() {
+  const [canClicked, setCanClicked] = useState(true);
+
   const { darkMode, toggleTheme } = useTheme();
   const { state } = useAuth();
   const [children, setChildren] = useState<Child[]>([]);
@@ -55,8 +50,6 @@ export function Config() {
     }
   }
 
-  let canClick = true;
-
   const ajuste = async () => {
     try {
       const response = await api.post(`/admin`);
@@ -67,29 +60,45 @@ export function Config() {
     }
   };
 
-  const exportPDF = () => {
-    if (!canClick) {
+  const exportToExcel = () => {
+    if (!canClicked) {
       return;
     }
-    canClick = false;
+    setCanClicked(false);
 
     // Verifica se há dados na tabela
     if (children.length === 0) {
-      console.error("No data available to export");
-      canClick = true;
+      console.error('Nenhum dado disponível para exportação.');
+      setCanClicked(true);
       return;
     }
 
-    const doc = new jsPDF();
-    autoTable(doc, {
-      head: [['Nome', 'Idade', 'Pontos']],
-      body: children.map((child) => [child.nome, child.idade, child.pontos]),
-    });
-    doc.save("children.pdf");
+    // Cria o cabeçalho e o corpo da tabela
+    const sheetData = [
+      ['Nome', 'Idade', 'Pontos'], 
+      ...children.map((child) => [
+        child.nome,
+        child.idade,
+        child.points.length, // Conta o número de objetos no array pontos
+      ]),
+    ];
+
+    // Cria a planilha
+    const worksheet = XLSX.utils.aoa_to_sheet(sheetData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Crianças');
+
+    // Salva o arquivo Excel
+    XLSX.writeFile(workbook, 'children.xlsx');
+
     setTimeout(() => {
-      canClick = true;
+      setCanClicked(true);
     }, 3000);
   };
+
+  useEffect(() => {
+    fetchChildren();
+  }, []);
 
   return (
     <>
@@ -127,12 +136,12 @@ export function Config() {
           </button>
         </div>
         <div
-          onClick={exportPDF}
+          onClick={exportToExcel}
           className={`flex justify-between items-center px-10 py-3 rounded-lg w-[90%] cursor-pointer lg:ml-16 shadow-md ${
             darkMode ? "bg-gray-800 text-gray-100 hover:bg-gray-700" : "bg-white text-gray-900"
           }`}
         >
-          BAIXAR PDF
+          BAIXAR EXEl
           <DownloadSimple size={35} color={`${
             darkMode ? "#fff" : "#000"
           }`}  />
@@ -169,28 +178,6 @@ export function Config() {
           <></>
         )}
       </main>
-      <div style={{ display: "none" }}>
-        <TableContainer>
-          <Table id="my-table">
-            <TableHead>
-              <TableRow>
-                <TableCell>Nome</TableCell>
-                <TableCell align="right">Idade</TableCell>
-                <TableCell align="right">Pontos</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {children.map((child) => (
-                <TableRow key={child.id}>
-                  <TableCell>{child.nome}</TableCell>
-                  <TableCell align="right">{child.idade}</TableCell>
-                  <TableCell align="right">{child.pontos}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </div>
     </>
   );
 }

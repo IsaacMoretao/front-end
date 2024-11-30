@@ -11,7 +11,7 @@ interface Product {
   id: number;
   nome: string;
   idade: number;
-  pontos: number;
+  points: Array<Object>;
 }
 
 const ITEMS_PER_PAGE = 10;
@@ -50,10 +50,6 @@ interface ProductTableProps {
   maxAge: number;
 }
 
-// interface PointsAdded {
-//   [key: number]: number[];
-// }
-
 export function Table({
   setSelectedItems,
   selectedItems,
@@ -77,70 +73,7 @@ export function Table({
   );
   const POINT_LIMIT_TIME = Number(import.meta.env.VITE_POINT_LIMIT_TIME) || 18000000;
 
-  // useEffect(() => {
-  //   const storedPoints = localStorage.getItem('pointsAdded');
-  //   if (storedPoints) {
-  //     setPointsAdded(JSON.parse(storedPoints));
-  //   }
-  // }, []);
 
-  // const handleAddPoint = async (productId: number) => {
-  //   try {
-  //     const response = await api.post(`/addPoint/${productId}`);
-
-  //     if (response.status === 201) {
-  //       setPointsAdded((prevPoints) => {
-  //         const currentTime = Date.now();
-  //         const updatedPoints = prevPoints[productId] || [];
-
-  //         const filteredPoints = updatedPoints.filter(
-  //           (timestamp) => currentTime - timestamp <= 60 * 1000
-  //         );
-
-  //         if (filteredPoints.length < 4) {
-  //           filteredPoints.push(currentTime);
-  //           const newPointsAdded = { ...prevPoints, [productId]: filteredPoints };
-  //           localStorage.setItem('pointsAdded', JSON.stringify(newPointsAdded));
-  //           return newPointsAdded;
-  //         }
-  //         return prevPoints;
-  //       });
-  //     }
-  //   } catch (error) {
-  //     console.error('Erro ao adicionar ponto:', error);
-  //   }
-  // };
-
-  // const handleRemovePoint = async (productId: number) => {
-  //   try {
-  //     const response = await api.delete(`/deletePoint/${productId}`);
-
-  //     if (response.status === 200) {
-  //       setPointsAdded((prevPoints) => {
-  //         // Remove o ponto apenas se o tempo não tiver expirado
-  //         const currentTime = Date.now();
-  //         const updatedPoints = prevPoints[productId] || [];
-  //         const filteredPoints = updatedPoints.filter(
-  //           (timestamp) => currentTime - timestamp <= 60 * 1000
-  //         );
-
-  //         // Remove o ponto se ele estiver dentro do intervalo de tempo permitido
-  //         if (filteredPoints.length > 0) {
-  //           filteredPoints.shift(); // Remove o ponto mais antigo
-  //           const newPointsAdded = { ...prevPoints, [productId]: filteredPoints };
-  //           localStorage.setItem('pointsAdded', JSON.stringify(newPointsAdded)); // Atualiza o localStorage
-  //           return newPointsAdded;
-  //         }
-
-  //         return prevPoints;
-  //       });
-  //     } else {
-  //       alert('O ponto não pode ser excluído após 1 minuto.');
-  //     }
-  //   } catch (error) {
-  //     console.error('Erro ao excluir ponto:', error);
-  //   }
-  // };
 
   const handleOpenPopup = (id: number) => {
     setSelectedProductId(id);
@@ -302,7 +235,7 @@ export function Table({
                   </td>
                   <td className="p-3">{product.nome}</td>
                   <td className="p-3">{product.idade}</td>
-                  <td className="p-3">{product.pontos}</td>
+                  <td className="p-3">{product.points.length}</td>
                   <td className="p-3 flex flex-col">
                     <div className="flex">
                       <button

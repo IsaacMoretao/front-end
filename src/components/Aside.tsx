@@ -1,19 +1,11 @@
-import { House, Database, SignOut, GearSix, Table } from "phosphor-react";
+import { House, Database, SignOut, GearSix } from "phosphor-react";
 import Logo from "../../assets/Logo.png";
 import { useAuth } from "../Context/AuthProvider";
 import { Link, useLocation } from "react-router-dom";
 
 import { api } from "../lib/axios";
 import { useEffect, useState } from "react";
-import {
-  TableContainer,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
-} from "@mui/material";
 import { useTheme } from "../Context/ThemeContext";
-
 
 interface Child {
   id: number;
@@ -24,11 +16,30 @@ interface Child {
 
 export function Aside() {
   const { darkMode } = useTheme();
-  const [server, setServer] = useState(false);
   const { dispatch } = useAuth();
-  const [children, setChildren] = useState<Child[]>([]);
   const location = useLocation();
   const path = location.pathname;
+
+  const [server, setServer] = useState<boolean | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [showPopup, setShowPopup] = useState(false);
+
+  const verifyServer = async () => {
+    setIsLoading(true);
+    setShowPopup(false); // Garantir que o pop-up não fique visível durante novas tentativas
+    try {
+      const response = await api.get(`/children/`);
+      const hasChildren =
+        Array.isArray(response.data) && response.data.length > 0;
+      setServer(hasChildren);
+    } catch (error) {
+      setServer(false);
+      setShowPopup(true); // Mostra o pop-up caso ocorra um erro
+      console.error("Erro ao verificar o servidor:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   let report = "";
   if (path.endsWith("/Relatorio")) {
@@ -39,25 +50,11 @@ export function Aside() {
     dispatch({ type: "LOGOUT" });
   };
 
-  const verifyServer = async () => {
-    try {
-      setServer(false);
-      const response = await api.get(`/children/`);
-      const hasChildren =
-        Array.isArray(response.data) && response.data.length > 0;
-      setServer(hasChildren);
-    } catch (error) {
-      setServer(false);
-      console.error("Erro ao verificar o servidor:", error);
-    }
-  };
-
   const fetchChildren = async () => {
     try {
       const response = await api.get(`/children`);
       const data = response.data;
       data.sort((a: Child, b: Child) => a.nome.localeCompare(b.nome));
-      setChildren(data);
     } catch (error) {
       console.error("Erro ao buscar crianças:", error);
     }
@@ -85,12 +82,21 @@ export function Aside() {
           <Link to="/home">
             <House size={35} color={darkMode ? "#fff" : "#1D1D1D"} />
           </Link>
-          <button onClick={verifyServer}>
-            <Database
-              size={35}
-              color={server === true ? "#2cb438" : "#e46962"}
-            />
-          </button>
+
+          {isLoading ? (
+            <span
+              className={`loader inline-block w-5 h-5 border-2 border-t-2 border-t-transparent ${
+                darkMode ? "border-white" : "border-black"
+              } rounded-full animate-spin`}
+            ></span>
+          ) : (
+            <button onClick={verifyServer}>
+              <Database
+                size={35}
+                color={server === true ? "#2cb438" : "#e46962"}
+              />
+            </button>
+          )}
           <button onClick={handleLogout}>
             <SignOut size={35} color={darkMode ? "#fff" : "#1D1D1D"} />
           </button>
@@ -99,28 +105,22 @@ export function Aside() {
           </Link>
         </nav>
       </aside>
-      <div style={{ display: "none" }}>
-        <TableContainer>
-          <Table id="my-table">
-            <TableHead>
-              <TableRow>
-                <TableCell>Nome</TableCell>
-                <TableCell align="right">Idade</TableCell>
-                <TableCell align="right">Pontos</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {children.map((child) => (
-                <TableRow key={child.id}>
-                  <TableCell>{child.nome}</TableCell>
-                  <TableCell align="right">{child.idade}</TableCell>
-                  <TableCell align="right">{child.pontos}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </div>
+      {showPopup && (
+        <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded shadow-md text-center">
+            <p className="text-red-600 font-bold">
+              O servidor não está funcionando!
+            </p>
+            <button
+              onClick={() => setShowPopup(false)}
+              className="mt-4 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+            >
+              Fechar
+            </button>
+          </div>
+        </div>
+      )}
+      
     </>
   );
 }
