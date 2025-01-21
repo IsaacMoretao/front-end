@@ -30,7 +30,7 @@ export function Aside() {
     try {
       const response = await api.get(`/children/`);
       const hasChildren =
-        Array.isArray(response.data) && response.data.length > 0;
+        Array.isArray(response.data) && response.data.length >= 0;
       setServer(hasChildren);
     } catch (error) {
       setServer(false);
