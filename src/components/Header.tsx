@@ -14,10 +14,10 @@ import {
   NotePencil,
   PresentationChart,
 } from "phosphor-react";
-import { Link, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { api } from "../lib/axios";
 import { useTheme } from "../Context/ThemeContext";
-import { useAuth } from "../Context/AuthProvider";
+// import { useAuth } from "../Context/AuthProvider";
 
 interface Point {}
 
@@ -39,7 +39,7 @@ export function Header() {
 
   const location = useLocation();
   const path = location.pathname;
-  const { state } = useAuth();
+  // const { state } = useAuth();
 
   let title = "";
   let report = "";
