@@ -144,21 +144,7 @@ export function Header() {
               </button>
             </div>
           )}
-          {state.level === "ADMIN" ? (
-            <>
-              {path.startsWith("/admin") ? (
-                <Link to={"/home"}>
-                  <House size={35} color="#fff" weight="duotone" />
-                </Link>
-              ) : (
-                <Link to={"/admin"}>
-                  <PresentationChart size={35} color="#ede1ef" />
-                </Link>
-              )}
-            </>
-          ) : (
-            <></>
-          )}
+          
         </Toolbar>
       </header>
       <Modal

@@ -3,29 +3,25 @@ import {
   useContext,
   useState,
   ReactNode,
-  useEffect,
 } from "react";
 import { api } from "../lib/axios";
 import { useAuth } from "./AuthProvider";
 
 interface PointsAdded {
-  [key: number]: number[];
+  [key: number]: number;
 }
 
 interface PointsContextType {
   pointsAdded: PointsAdded;
   handleAddPoint: (productId: number) => void;
   handleRemovePoint: (productId: number) => void;
+  loading: { [key: number]: boolean };
 }
 
 const PointsContext = createContext<PointsContextType | undefined>(undefined);
 
-const POINT_LIMIT_TIME =
-  Number(import.meta.env.VITE_POINT_LIMIT_TIME) || 18000000;
-
 export const usePointsContext = () => {
   const context = useContext(PointsContext);
-  // console.log(context); // Adicione isto para verificar o valor
   if (!context) {
     throw new Error("usePointsContext must be used within a PointsProvider");
   }
@@ -40,76 +36,54 @@ export const PointsProvider = ({ children }: PointsProviderProps) => {
   const { state } = useAuth();
 
   const [pointsAdded, setPointsAdded] = useState<PointsAdded>({});
-
-  useEffect(() => {
-    const storedPoints = localStorage.getItem("pointsAdded");
-    if (storedPoints) {
-      setPointsAdded(JSON.parse(storedPoints));
-    }
-  }, []);
+  const [loading, setLoading] = useState<{ [key: number]: boolean }>({});
 
   const handleAddPoint = async (productId: number) => {
     try {
+      // Marca o início do carregamento
+      setLoading((prev) => ({ ...prev, [productId]: true }));
+  
       const response = await api.post(`/addPoint/${productId}/${state.userId}`);
-
+  
       if (response.status === 200 || response.status === 201) {
-        const currentTime = Date.now();
+        // Se a resposta for 200, adicione o ponto
         setPointsAdded((prevPoints) => {
-          const updatedPoints =
-            prevPoints[productId]?.filter(
-              (timestamp) => currentTime - timestamp <= POINT_LIMIT_TIME
-            ) || [];
-
-          if (updatedPoints.length < 4) {
-            const newPoints = {
-              ...prevPoints,
-              [productId]: [...updatedPoints, currentTime],
-            };
-            return newPoints;
+          const currentPoints = prevPoints[productId] || 0;
+          if (currentPoints < 4) {
+            return { ...prevPoints, [productId]: currentPoints + 1 };
           }
           return prevPoints;
         });
-
-        setTimeout(() => {
-          localStorage.setItem("pointsAdded", JSON.stringify(pointsAdded));
-        }, 0);
       }
     } catch (error) {
       console.error("Erro ao adicionar ponto:", error);
+    } finally {
+      // Marca o fim do carregamento
+      setLoading((prev) => ({ ...prev, [productId]: false }));
     }
   };
-
+  
   const handleRemovePoint = async (productId: number) => {
     try {
-      // Faz a requisição para a API de remover o último ponto
       const response = await api.delete(`/deletePoint/${productId}`);
-
-      // Verifica se a resposta foi bem-sucedida (status 200)
+  
       if (response.status === 200) {
-        const currentTime = Date.now();
-
         setPointsAdded((prevPoints) => {
-          const updatedPoints =
-            prevPoints[productId]?.filter(
-              (timestamp) => currentTime - timestamp <= POINT_LIMIT_TIME
-            ) || [];
-
-          if (updatedPoints.length > 0) {
-            updatedPoints.pop(); // Remove o último ponto
-            const newPoints = { ...prevPoints, [productId]: updatedPoints };
-            return newPoints;
+          const currentPoints = prevPoints[productId] || 0;
+  
+          // Evita números negativos
+          if (currentPoints > 0) {
+            return {
+              ...prevPoints,
+              [productId]: currentPoints - 1,
+            };
           }
-          return prevPoints;
+  
+          return prevPoints; // Mantém o estado atual se já for 0
         });
-
-        // Atualiza o localStorage após o estado ser atualizado
-        setTimeout(() => {
-          localStorage.setItem("pointsAdded", JSON.stringify(pointsAdded));
-        }, 0);
       }
     } catch (error) {
       console.error("Erro ao remover ponto:", error);
-      // Adicione lógica de tratamento de erro se necessário
     }
   };
 
@@ -146,7 +120,7 @@ export const PointsProvider = ({ children }: PointsProviderProps) => {
 
   return (
     <PointsContext.Provider
-      value={{ pointsAdded, handleAddPoint, handleRemovePoint }}
+      value={{ pointsAdded, handleAddPoint, handleRemovePoint, loading }}
     >
       {children}
     </PointsContext.Provider>

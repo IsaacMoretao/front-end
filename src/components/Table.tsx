@@ -11,6 +11,7 @@ interface Product {
   id: number;
   nome: string;
   idade: number;
+  pointsAdded: number;
   points: Array<Object>;
 }
 
@@ -63,17 +64,13 @@ export function Table({
   const [page, setPage] = useState(0);
 
   const [searchNome, setSearchNome] = useState("");
-  // const [pointsAdded, setPointsAdded] = useState<PointsAdded>({});
-  const { pointsAdded, handleAddPoint, handleRemovePoint } = usePointsContext();
+  const { pointsAdded, handleAddPoint, handleRemovePoint, loading } = usePointsContext();
   const [selectAll, setSelectAll] = useState(false);
   const { darkMode } = useTheme();
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [selectedProductId, setSelectedProductId] = useState<number | null>(
     null
   );
-  const POINT_LIMIT_TIME = Number(import.meta.env.VITE_POINT_LIMIT_TIME) || 18000000;
-
-
 
   const handleOpenPopup = (id: number) => {
     setSelectedProductId(id);
@@ -212,89 +209,87 @@ export function Table({
               </td>
             </tr>
             {Array.isArray(displayedProducts) &&
-              displayedProducts.map((product) => (
-                <tr
-                  key={product.id}
-                  className={`border-b transition-all rounded ${
-                    darkMode
-                      ? "text-gray-100 hover:bg-gray-600"
-                      : "text-gray-900 hover:bg-gray-200"
-                  }`}
-                >
-                  <td className="p-3">
-                    <input
-                      className={`px-5 py-2 ${
-                        darkMode
-                          ? "text-gray-100 hover:bg-gray-600"
-                          : "text-gray-900 hover:bg-gray-200"
-                      }`}
-                      type="checkbox"
-                      onChange={() => onSelectItem(product.id)}
-                      checked={selectedItems.includes(product.id)}
-                    />
-                  </td>
-                  <td className="p-3">{product.nome}</td>
-                  <td className="p-3">{product.idade}</td>
-                  <td className="p-3">{product.points.length}</td>
-                  <td className="p-3 flex flex-col">
-                    <div className="flex">
-                      <button
-                        className="ml-1 bg-blue-500 text-white px-2 py-1 rounded"
-                        onClick={() => handleAddPoint(product.id)}
-                        disabled={
-                          pointsAdded[product.id]?.length >= 4 &&
-                          Date.now() - (pointsAdded[product.id]?.[0] || 0) <=
-                          POINT_LIMIT_TIME
-                        }
-                      >
-                        +1 ponto
-                      </button>
-                      <button
-                        className="ml-1 bg-red-500 text-white px-2 py-1 rounded"
-                        onClick={() => handleRemovePoint(product.id)}
-                        disabled={
-                          pointsAdded[product.id]?.length === 0 || 
-                          (Date.now() - (pointsAdded[product.id]?.slice(-1)[0] || 0) > POINT_LIMIT_TIME) 
-                        }
-                      >
-                        -1 ponto
-                      </button>
-                      <button
-                        className="ml-1 text-white px-2 py-1 rounded"
-                        onClick={() => handleOpenPopup(product.id)} // Passa o ID da criança ao abrir o popup
-                      >
-                        <DotsThreeOutline size={45} color="#9ca3af" />
-                      </button>
+              displayedProducts.map((product) => {
+                const totalPoints =
+                  (product.pointsAdded || 0) + (pointsAdded[product.id] || 0);
+                return (
+                  <tr
+                    key={product.id}
+                    className={`border-b transition-all rounded ${
+                      darkMode
+                        ? "text-gray-100 hover:bg-gray-600"
+                        : "text-gray-900 hover:bg-gray-200"
+                    }`}
+                  >
+                    <td className="p-3">
+                      <input
+                        className={`px-5 py-2 ${
+                          darkMode
+                            ? "text-gray-100 hover:bg-gray-600"
+                            : "text-gray-900 hover:bg-gray-200"
+                        }`}
+                        type="checkbox"
+                        onChange={() => onSelectItem(product.id)}
+                        checked={selectedItems.includes(product.id)}
+                      />
+                    </td>
+                    <td className="p-3">{product.nome}</td>
+                    <td className="p-3">{product.idade}</td>
+                    <td className="p-3">{product.points.length}</td>
+                    <td className="p-3 flex flex-col">
+                      <div className="flex">
+                        <button
+                          className="ml-1 bg-blue-500 text-white px-2 py-1 rounded"
+                          onClick={() => handleAddPoint(product.id)}
+                          disabled={pointsAdded[product.id] >= 4}
+                        >
+                          +1 ponto
+                        </button>
+                        <button
+                          className="ml-1 bg-red-500 text-white px-2 py-1 rounded"
+                          onClick={() => handleRemovePoint(product.id)}
+                          disabled={pointsAdded[product.id] === 0}
+                        >
+                          -1 ponto
+                        </button>
+                        <button
+                          className="ml-1 text-white px-2 py-1 rounded"
+                          onClick={() => handleOpenPopup(product.id)} // Passa o ID da criança ao abrir o popup
+                        >
+                          <DotsThreeOutline size={45} color="#9ca3af" />
+                        </button>
 
-                      {isPopupOpen && selectedProductId === product.id && (
-                        <PopupDetails
-                          id={selectedProductId}
-                          onClose={handleClosePopup}
-                        />
-                      )}
-                    </div>
-                    <div className="p-3">
-                      {pointsAdded[product.id] &&
-                        pointsAdded[product.id].map((timestamp, index) => (
-                          <span
-                            key={index}
-                            className="ml-1 bg-blue-500 text-white px-2 py-1 rounded transition-all duration-300"
-                            style={{
-                              opacity:
-                                Date.now() - timestamp > POINT_LIMIT_TIME ? 0 : 1,
-                              transform:
-                                Date.now() - timestamp > POINT_LIMIT_TIME
-                                  ? "translateY(-10px)"
-                                  : "translateY(0)",
-                            }}
-                          >
-                            +1
-                          </span>
-                        ))}
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                        {isPopupOpen && selectedProductId === product.id && (
+                          <PopupDetails
+                            id={selectedProductId}
+                            onClose={handleClosePopup}
+                          />
+                        )}
+                      </div>
+                      <div className="p-3">
+                        {totalPoints > 0 && (
+                          <div className="flex mt-2">
+                            {Array.from({ length: totalPoints }).map(
+                              (_, index) => (
+                                <span
+                                  key={`${product.id}-${index}`}
+                                  className="ml-1 bg-blue-500 text-white px-2 py-1 rounded-full transition-all duration-300"
+                                >
+                                  {loading[product.id] ? (
+                                    <span>...</span> // Ou use um ícone de carregamento, como o de "spinner"
+                                  ) : (
+                                    "+1"
+                                  )}
+                                </span>
+                              )
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
           </tbody>
         </table>
       </InfiniteScroll>

@@ -79,7 +79,7 @@ export function Aside() {
           <img src={Logo} alt="" className="h-12 mb-7 w-auto" />
         </figure>
         <nav className="flex max-lg:w-full max-lg:justify-around lg:flex-col lg:gap-5 ">
-          <Link to="/home">
+          <Link to="/">
             <House size={35} color={darkMode ? "#fff" : "#1D1D1D"} />
           </Link>
 
@@ -120,7 +120,6 @@ export function Aside() {
           </div>
         </div>
       )}
-      
     </>
   );
 }

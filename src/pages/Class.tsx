@@ -13,13 +13,14 @@ import { useAuth } from "../Context/AuthProvider";
 import { usePointsContext } from "../Context/PointsContext";
 import { PopupDetails } from "../components/PopupDetails";
 
-interface Point {}
+interface Point { }
 
 interface Product {
   id: number;
   nome: string;
-  idade: number;
+  idade: string; // Data no formato "YYYY-MM-DD"
   pontos: number;
+  dateOfBirth: string;
   points: Point[];
 }
 
@@ -52,8 +53,6 @@ export function Class({ min, max }: Class) {
   );
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const ITEMS_PER_PAGE = 10;
-
-  const POINT_LIMIT_TIME = Number(import.meta.env.VITE_POINT_LIMIT_TIME) || 18000000;
 
   const handleOpenPopup = (id: number) => {
     setSelectedProductId(id);
@@ -141,7 +140,7 @@ export function Class({ min, max }: Class) {
   };
 
   const handleCreate = () => {
-    setCurrentProduct({ id: 0, nome: "", idade: 0, pontos: 0, points: [] });
+    setCurrentProduct({ id: 0, nome: "", idade: "", dateOfBirth: "", pontos: 0, points: [] });
     setIsEditing(false);
     setOpen(true);
   };
@@ -151,30 +150,40 @@ export function Class({ min, max }: Class) {
   const handleSave = async () => {
     if (currentProduct) {
       try {
-        // Garante que o array de 'points' esteja correto
+        // Prepara o array de pontos
         const pointsArray: Point[] = new Array(
           currentProduct.points.length
-        ).fill({} as Point);
+        ).fill({});
 
+        // Valida a data antes de formatar
+        const dateOfBirth =
+          currentProduct.dateOfBirth && !isNaN(new Date(currentProduct.dateOfBirth).getTime())
+            ? new Date(currentProduct.dateOfBirth).toISOString().split("T")[0]
+            : null;
+
+        if (!dateOfBirth) {
+          throw new Error("Data de nascimento inválida.");
+        }
+
+        // Prepara o produto para envio no formato esperado
         const productToSave = {
           ...currentProduct,
-          points: pointsArray, // Garante que o campo 'points' seja um array de objetos vazios
+          points: pointsArray,
+          dateOfBirth,
         };
 
         if (isEditing) {
-          // Edição do produto existente
           await api.put(`/children/${currentProduct.id}`, productToSave);
           setProducts((prev) =>
             prev.map((p) => (p.id === currentProduct.id ? productToSave : p))
           );
         } else {
-          // Criação de nova criança
           const response = await api.post("/children", [productToSave]);
           setProducts((prev) => [...prev, response.data]);
         }
         handleClose();
       } catch (error) {
-        console.error("Error saving product:", error);
+        console.error("Erro ao salvar produto:", error);
       }
     }
   };
@@ -212,13 +221,13 @@ export function Class({ min, max }: Class) {
       nextPage * ITEMS_PER_PAGE,
       (nextPage + 1) * ITEMS_PER_PAGE
     );
-  
+
     // Verifica se todos os produtos já foram carregados
     if (displayedProducts.length >= filteredProducts.length) {
       setHasMore(false);
       return;
     }
-  
+
     // Atualiza a lista de produtos exibidos e a página
     setDisplayedProducts((prevProducts) => [...prevProducts, ...newProducts]);
     setPage(nextPage);
@@ -227,8 +236,8 @@ export function Class({ min, max }: Class) {
   useEffect(() => {
     const filteredProducts = filterProducts();
     setDisplayedProducts(filteredProducts.slice(0, ITEMS_PER_PAGE));
-    setPage(0); 
-    setHasMore(filteredProducts.length > ITEMS_PER_PAGE); 
+    setPage(0);
+    setHasMore(filteredProducts.length > ITEMS_PER_PAGE);
   }, [searchTerm, products]);
 
   const handlePointsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -249,14 +258,12 @@ export function Class({ min, max }: Class) {
   return (
     <>
       <main
-        className={`p-16 lg:ml-16 min-h-[95vh] max-md:hidden shadow-md ${
-          darkMode ? "bg-gray-900" : "bg-gray-100"
-        }`}
+        className={`p-16 lg:ml-16 min-h-[95vh] max-md:hidden shadow-md ${darkMode ? "bg-gray-900" : "bg-gray-100"
+          }`}
       >
         <div
-          className={`rounded-2xl h-full p-5 ${
-            darkMode ? "bg-gray-800" : "bg-white"
-          }`}
+          className={`rounded-2xl h-full p-5 ${darkMode ? "bg-gray-800" : "bg-white"
+            }`}
         >
           <header>
             <div className="flex gap-3 mb-3">
@@ -264,11 +271,10 @@ export function Class({ min, max }: Class) {
                 <button
                   onClick={handleEdit}
                   disabled={selectedItems.length !== 1}
-                  className={`${
-                    selectedItems.length !== 1
-                      ? "opacity-50 cursor-not-allowed"
-                      : ""
-                  }`}
+                  className={`${selectedItems.length !== 1
+                    ? "opacity-50 cursor-not-allowed"
+                    : ""
+                    }`}
                 >
                   <PencilSimple size={35} color="#5C46B2" />
                 </button>
@@ -284,11 +290,10 @@ export function Class({ min, max }: Class) {
                 <button
                   onClick={() => handleDelete(selectedItems)}
                   disabled={selectedItems.length === 0}
-                  className={`${
-                    selectedItems.length === 0
-                      ? "opacity-50 cursor-not-allowed"
-                      : ""
-                  }`}
+                  className={`${selectedItems.length === 0
+                    ? "opacity-50 cursor-not-allowed"
+                    : ""
+                    }`}
                 >
                   <Trash size={36} color="#5C46B2" weight="duotone" />
                 </button>
@@ -360,11 +365,10 @@ export function Class({ min, max }: Class) {
                   )}
                   <section
                     key={product.id}
-                    className={`lg:hidden flex p-4 rounded-lg shadow-md relative my-5 ${
-                      darkMode
-                        ? "bg-gray-800 text-gray-100"
-                        : "bg-white text-gray-900"
-                    }`}
+                    className={`lg:hidden flex p-4 rounded-lg shadow-md relative my-5 ${darkMode
+                      ? "bg-gray-800 text-gray-100"
+                      : "bg-white text-gray-900"
+                      }`}
                   >
                     <div className="flex-grow pl-4">
                       <header className="flex justify-between items-center mb-2">
@@ -425,9 +429,7 @@ export function Class({ min, max }: Class) {
                             className="ml-1 bg-blue-500 text-white px-2 py-1 rounded"
                             onClick={() => handleAddPoint(product.id)}
                             disabled={
-                              pointsAdded[product.id]?.length >= 4 &&
-                              Date.now() - (pointsAdded[product.id]?.[0] || 0) <=
-                              POINT_LIMIT_TIME
+                              pointsAdded[product.id] >= 4
                             }
                           >
                             +1 Ponto
@@ -436,8 +438,7 @@ export function Class({ min, max }: Class) {
                             className="ml-1 bg-red-500 text-white px-2 py-1 rounded"
                             onClick={() => handleRemovePoint(product.id)}
                             disabled={
-                              pointsAdded[product.id]?.length === 0 || 
-                              (Date.now() - (pointsAdded[product.id]?.slice(-1)[0] || 0) > POINT_LIMIT_TIME) 
+                              pointsAdded[product.id] === 0
                             }
                           >
                             -1 Ponto
@@ -446,22 +447,16 @@ export function Class({ min, max }: Class) {
                       </footer>
                       <div className="p-3">
                         {pointsAdded[product.id] &&
-                          pointsAdded[product.id].map((timestamp, index) => (
-                            <span
-                              key={index}
-                              className="ml-1 bg-gray-500 text-white px-2 py-1 rounded transition-all duration-300"
-                              style={{
-                                opacity:
-                                  Date.now() - timestamp > POINT_LIMIT_TIME ? 0 : 1,
-                                transform:
-                                  Date.now() - timestamp > POINT_LIMIT_TIME
-                                    ? "translateY(-10px)"
-                                    : "translateY(0)",
-                              }}
-                            >
-                              +1
-                            </span>
-                          ))}
+                          Array.from({ length: pointsAdded[product.id] }).map(
+                            (_, index) => (
+                              <span
+                                key={index}
+                                className="ml-1 bg-blue-500 text-white px-2 py-1 rounded transition-all duration-300"
+                              >
+                                +1
+                              </span>
+                            )
+                          )}
                       </div>
                     </div>
                   </section>
@@ -517,15 +512,19 @@ export function Class({ min, max }: Class) {
                 }
               />
               <TextField
-                label="Idade"
+                // label="Data de Nascimento"
                 fullWidth
                 margin="normal"
-                type="number"
-                value={currentProduct.idade || ""}
+                type="date"
+                value={
+                  currentProduct.dateOfBirth
+                    ? currentProduct.dateOfBirth.split("/").reverse().join("-") // Converte "DD/MM/YYYY" para "YYYY-MM-DD"
+                    : ""
+                }
                 onChange={(e) =>
                   setCurrentProduct({
                     ...currentProduct,
-                    idade: Number(e.target.value),
+                    dateOfBirth: e.target.value.split("-").reverse().join("/"), // Converte "YYYY-MM-DD" para "DD/MM/YYYY"
                   })
                 }
               />

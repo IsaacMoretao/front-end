@@ -2,17 +2,21 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import { Login } from "./pages/Login";
 import { Home } from "./pages/Home";
 import { Class } from "./pages/Class";
+
 import { useTheme } from "./Context/ThemeContext";
 import { useAuth } from "./Context/AuthProvider";
 import { useEffect, useState } from "react";
 import { Loader } from "./pages/loader";
+
 import "./Stylles/Loader.css";
 import { PageNotFound } from "./pages/PageNotFound";
 import { Header } from "./components/Header";
 import { Aside } from "./components/Aside";
 import { Config } from "./pages/Config";
+
 import { Admin } from "./pages/Admin";
 import { Relatorio } from "./pages/Relatorio";
+import { Navigation } from "./pages/Navigation";
 
 function App() {
   const { state, dispatch } = useAuth();
@@ -31,6 +35,7 @@ function App() {
     const token = localStorage.getItem("token");
     const level = localStorage.getItem("level");
     const userId = localStorage.getItem("userId");
+    const aceesAdmin = localStorage.getItem("aceesAdmin");
 
     if (token) {
       dispatch({
@@ -39,6 +44,7 @@ function App() {
           token,
           level: level ?? "",
           userId: userId ?? "",
+          aceesAdmin: aceesAdmin ?? "",
         },
       });
     }
@@ -68,7 +74,7 @@ function App() {
           ) : (
             <>
               {/* Rotas acessíveis com token */}
-              <Route path="/home" element={loading ? <Loader /> : <Home />} />
+              <Route path="/galardao" element={loading ? <Loader /> : <Home />} />
               <Route path="/loader" element={<Loader />} />
               <Route
                 path="/sala/9-11"
@@ -90,7 +96,7 @@ function App() {
                 path="/sala/4-7"
                 element={loading ? <Loader /> : <Class min={4} max={7} />}
               />
-              <Route path="/" element={loading ? <Loader /> : <Home />} />
+              <Route path="/" element={loading ? <Loader /> : <Navigation />} />
               <Route
                 path="/config"
                 element={loading ? <Loader /> : <Config />}

@@ -59,7 +59,9 @@ export function Login() {
       const responseData = await response.json();
       console.log("Resposta do servidor:", responseData);
 
-      const { token, level, userId } = responseData;
+      const { token, level, userId, AceesAdmin } = responseData;
+
+      const aceesAdmin = AceesAdmin;
       if (!userId) {
         console.error("userId não foi encontrado na resposta do servidor");
       }
@@ -69,6 +71,7 @@ export function Login() {
       localStorage.setItem("token", token);
       localStorage.setItem("level", level);
       localStorage.setItem("userId", stringUserId);
+      localStorage.setItem("aceesAdmin", aceesAdmin)
 
       dispatch({
         type: "LOGIN",
@@ -76,9 +79,10 @@ export function Login() {
           token,
           level,
           userId: stringUserId,
+          aceesAdmin: aceesAdmin
         },
       });
-      navigate("/home");
+      navigate("/");
     } catch (error) {
       console.error("Erro ao fazer login:", error);
       setError("Erro ao fazer login. Por favor, tente novamente.");
@@ -151,7 +155,7 @@ export function Login() {
                 variant="outlined"
                 margin="normal"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e: { target: { value: any; }; }) => setPassword(e.target.value)}
                 fullWidth
               />
               <Button

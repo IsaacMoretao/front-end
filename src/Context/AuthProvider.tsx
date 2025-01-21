@@ -8,7 +8,7 @@ import {
 
 // Defina os tipos de ações possíveis
 type AuthAction =
-  | { type: "LOGIN"; payload: { token: string; level: string; userId: string } }
+  | { type: "LOGIN"; payload: { token: string; level: string; userId: string; aceesAdmin: string; } }
   | { type: "LOGOUT" };
 
 // Defina o tipo para o estado de autenticação
@@ -16,6 +16,7 @@ interface AuthState {
   token: string | null;
   level: string | null;
   userId: string | null;
+  aceesAdmin: string | null;
 }
 
 // Crie o contexto de autenticação
@@ -37,6 +38,7 @@ function loadInitialState(): AuthState {
     token: localStorage.getItem("token") || null,
     level: localStorage.getItem("level") || null,
     userId: localStorage.getItem("userId") || null,
+    aceesAdmin: localStorage.getItem("aceesAdmin") || null,
   };
 }
 
@@ -47,6 +49,7 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
       localStorage.setItem("token", action.payload.token);
       localStorage.setItem("level", action.payload.level);
       localStorage.setItem("userId", action.payload.userId);
+      localStorage.setItem("aceesAdmin", action.payload.aceesAdmin);
       return {
         ...state,
         token: action.payload.token,
@@ -57,7 +60,8 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
       localStorage.removeItem("token");
       localStorage.removeItem("level");
       localStorage.removeItem("userId");
-      return { token: null, level: null, userId: null };
+      localStorage.removeItem("aceesAdmin");
+      return { token: null, level: null, userId: null, aceesAdmin: null };
     default:
       return state;
   }
