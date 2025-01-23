@@ -19,13 +19,14 @@ import { api } from "../lib/axios";
 import { useTheme } from "../Context/ThemeContext";
 // import { useAuth } from "../Context/AuthProvider";
 
-interface Point {}
+interface Point { }
 
 interface Product {
   id: number;
   nome: string;
-  idade: number;
+  idade: string; // Data no formato "YYYY-MM-DD"
   pontos: number;
+  dateOfBirth: string;
   points: Point[];
 }
 
@@ -55,7 +56,7 @@ export function Header() {
   } else if (path.endsWith("/Relatorio")) {
     title = "RELATORIO";
     report = "hidden";
-  }  else {
+  } else {
     title = "...";
   }
 
@@ -79,7 +80,7 @@ export function Header() {
   const handleClose = () => setOpen(false);
 
   const handleCreate = () => {
-    setCurrentProduct({ id: 0, nome: "", idade: 0, pontos: 0, points: [] });
+    setCurrentProduct({ id: 0, nome: "", idade: "", dateOfBirth: "", pontos: 0, points: [] });
     setIsEditing(false);
     setOpen(true);
   };
@@ -109,15 +110,39 @@ export function Header() {
   const handleSave = async () => {
     if (currentProduct) {
       try {
-        if (!isEditing) {
-          // Adiciona nova criança
-          const response = await api.post("/children", [currentProduct]);
+        // Prepara o array de pontos
+        const pointsArray: Point[] = Array.isArray(currentProduct.points)
+          ? currentProduct.points
+          : [];
+
+        // Valida a data de nascimento
+        const dateOfBirth = currentProduct.dateOfBirth
+          ? new Date(currentProduct.dateOfBirth)
+          : null;
+
+        if (!dateOfBirth || isNaN(dateOfBirth.getTime())) {
+          throw new Error("Data de nascimento inválida.");
+        }
+
+        // Prepara o produto para envio no formato esperado
+        const productToSave = {
+          ...currentProduct,
+          points: pointsArray,
+          dateOfBirth: dateOfBirth.toISOString().split("T")[0], // Garante formato ISO
+        };
+
+        if (isEditing) {
+          await api.put(`/children/${currentProduct.id}`, productToSave);
+          setProducts((prev) =>
+            prev.map((p) => (p.id === currentProduct.id ? productToSave : p))
+          );
+        } else {
+          const response = await api.post("/children", [productToSave]);
           setProducts((prev) => [...prev, response.data]);
-          console.log(response, products);
         }
         handleClose();
       } catch (error) {
-        console.error("Error saving product:", error);
+        console.error("Erro ao salvar produto:", error);
       }
     }
   };
@@ -140,11 +165,11 @@ export function Header() {
                 onClick={handleCreate}
                 className="block lg:hidden px-4 py-2"
               >
-                <NotePencil size={35} color="#5C46B2" weight="duotone" />
+                <NotePencil size={35} color="#f3f4f6" weight="duotone" />
               </button>
             </div>
           )}
-          
+
         </Toolbar>
       </header>
       <Modal
@@ -192,28 +217,27 @@ export function Header() {
                 }
               />
               <TextField
-                label="Idade"
+                label="Data de Nascimento"
                 fullWidth
                 margin="normal"
-                type="number"
-                value={currentProduct.idade || ""}
+                type="date"
+                value={currentProduct.dateOfBirth || ""}
                 onChange={(e) =>
                   setCurrentProduct({
                     ...currentProduct,
-                    idade: Number(e.target.value),
+                    dateOfBirth: e.target.value,
                   })
                 }
+                InputLabelProps={{
+                  shrink: true, // Garante que o rótulo seja mostrado acima do campo
+                }}
               />
               <TextField
                 label="Pontos"
                 fullWidth
                 margin="normal"
                 type="number"
-                value={
-                  Array.isArray(currentProduct.points)
-                    ? currentProduct.points.length
-                    : 0
-                }
+                value={currentProduct.points ? currentProduct.points.length : 0}
                 onChange={handlePointsChange}
               />
               <Button

@@ -151,17 +151,16 @@ export function Class({ min, max }: Class) {
     if (currentProduct) {
       try {
         // Prepara o array de pontos
-        const pointsArray: Point[] = new Array(
-          currentProduct.points.length
-        ).fill({});
+        const pointsArray: Point[] = Array.isArray(currentProduct.points)
+          ? currentProduct.points
+          : [];
 
-        // Valida a data antes de formatar
-        const dateOfBirth =
-          currentProduct.dateOfBirth && !isNaN(new Date(currentProduct.dateOfBirth).getTime())
-            ? new Date(currentProduct.dateOfBirth).toISOString().split("T")[0]
-            : null;
+        // Valida a data de nascimento
+        const dateOfBirth = currentProduct.dateOfBirth
+          ? new Date(currentProduct.dateOfBirth)
+          : null;
 
-        if (!dateOfBirth) {
+        if (!dateOfBirth || isNaN(dateOfBirth.getTime())) {
           throw new Error("Data de nascimento inválida.");
         }
 
@@ -169,7 +168,7 @@ export function Class({ min, max }: Class) {
         const productToSave = {
           ...currentProduct,
           points: pointsArray,
-          dateOfBirth,
+          dateOfBirth: dateOfBirth.toISOString().split("T")[0], // Garante formato ISO
         };
 
         if (isEditing) {
@@ -488,7 +487,7 @@ export function Class({ min, max }: Class) {
           }}
         >
           <Typography id="modal-title" variant="h6" component="h2">
-            {isEditing ? "Editar Produto" : "Criar Produto"}
+            {isEditing ? "Editar Criança" : "Criar Criança"}
           </Typography>
           {currentProduct && (
             <Box
@@ -512,19 +511,14 @@ export function Class({ min, max }: Class) {
                 }
               />
               <TextField
-                // label="Data de Nascimento"
                 fullWidth
                 margin="normal"
                 type="date"
-                value={
-                  currentProduct.dateOfBirth
-                    ? currentProduct.dateOfBirth.split("/").reverse().join("-") // Converte "DD/MM/YYYY" para "YYYY-MM-DD"
-                    : ""
-                }
+                value={currentProduct.dateOfBirth || ""}
                 onChange={(e) =>
                   setCurrentProduct({
                     ...currentProduct,
-                    dateOfBirth: e.target.value.split("-").reverse().join("/"), // Converte "YYYY-MM-DD" para "DD/MM/YYYY"
+                    dateOfBirth: e.target.value, // Garante "YYYY-MM-DD"
                   })
                 }
               />
