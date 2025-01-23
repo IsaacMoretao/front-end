@@ -42,6 +42,8 @@ export function Header() {
   const path = location.pathname;
   // const { state } = useAuth();
 
+  console.log(products)
+
   let title = "";
   let report = "";
 
