@@ -20,9 +20,18 @@ interface Product {
   nome: string;
   idade: string; // Data no formato "YYYY-MM-DD"
   pontos: number;
+  pointsAdded: number;
   dateOfBirth: string;
   points: Point[];
 }
+
+// interface ReturnedProducts {
+//     id: number;
+//   nome: string;
+//   idade: number;
+//   pointsAdded: number;
+//   points: Array<Object>;
+// }
 
 interface Class {
   min: number;
@@ -35,7 +44,7 @@ interface Class {
 
 export function Class({ min, max }: Class) {
   const [selected, setSelected] = useState<string[]>([]);
-  const { pointsAdded, handleAddPoint, handleRemovePoint } = usePointsContext();
+  const { pointsAdded, handleAddPoint, handleRemovePoint, loading } = usePointsContext();
   const [products, setProducts] = useState<Product[]>([]);
   const [displayedProducts, setDisplayedProducts] = useState<Product[]>([]);
   const [selectedItems, setSelectedItems] = useState<number[]>([]);
@@ -140,7 +149,7 @@ export function Class({ min, max }: Class) {
   };
 
   const handleCreate = () => {
-    setCurrentProduct({ id: 0, nome: "", idade: "", dateOfBirth: "", pontos: 0, points: [] });
+    setCurrentProduct({ id: 0, nome: "", idade: "", pointsAdded: 0, dateOfBirth: "", pontos: 0, points: [] });
     setIsEditing(false);
     setOpen(true);
   };
@@ -313,7 +322,7 @@ export function Class({ min, max }: Class) {
         </div>
       </main>
       <div
-        className={`md:hidden p-5 ${darkMode ? "bg-gray-900" : "bg-gray-100"}`}
+        className={`md:hidden min-h-[100vh] p-5 ${darkMode ? "bg-gray-900" : "bg-gray-100"}`}
       >
         <InfiniteScroll
           dataLength={displayedProducts.length}
@@ -353,117 +362,126 @@ export function Class({ min, max }: Class) {
           />
 
           <>
-            {displayedProducts.length > 0 ? (
-              displayedProducts.map((product) => (
-                <>
-                  {isPopupOpen && selectedProductId === product.id && (
-                    <PopupDetails
-                      id={selectedProductId}
-                      onClose={handleClosePopup}
-                    />
-                  )}
-                  <section
-                    key={product.id}
-                    className={`lg:hidden flex p-4 rounded-lg shadow-md relative my-5 ${darkMode
-                      ? "bg-gray-800 text-gray-100"
-                      : "bg-white text-gray-900"
-                      }`}
-                  >
-                    <div className="flex-grow pl-4">
-                      <header className="flex justify-between items-center mb-2">
-                        <h2 className="font-semibold text-sm">
-                          {product.nome}
-                        </h2>
-                        <div className="flex items-center space-x-2">
-                          <span className="text-xs">{`Idade: ${product.idade} anos`}</span>
-                          <div className="relative">
-                            <button
-                              onClick={() => toggleMenu(product.id)}
-                              className="focus:outline-none"
-                            >
-                              &#x22EE;
-                            </button>
-                            {menuVisibleId === product.id && (
-                              <div className="absolute right-0 mt-2 w-32 bg-white border rounded-md shadow-lg z-10">
-                                {state.level != "ADMIN" ? (
-                                  <></>
-                                ) : (
-                                  <>
-                                    <button
-                                      onClick={() => {
-                                        handleEditMobille(product);
-                                        setMenuVisibleId(null);
-                                      }}
-                                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                                    >
-                                      Editar
-                                    </button>
-                                    <button
-                                      onClick={() => {
-                                        handleDelete([product.id]);
-                                        setMenuVisibleId(null);
-                                      }}
-                                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                                    >
-                                      Excluir
-                                    </button>
-                                  </>
-                                )}
-                                <button
-                                  onClick={() => handleOpenPopup(product.id)}
-                                  className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                                >
-                                  Info
-                                </button>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </header>
-                      <p className="text-sm mb-2">...</p>
-                      <footer className="flex justify-between text-sm">
-                        <span>{`Pontos: ${product.points.length}`}</span>
-                        <div>
-                          <button
-                            className="ml-1 bg-blue-500 text-white px-2 py-1 rounded"
-                            onClick={() => handleAddPoint(product.id)}
-                            disabled={
-                              pointsAdded[product.id] >= 4
-                            }
-                          >
-                            +1 Ponto
-                          </button>
-                          <button
-                            className="ml-1 bg-red-500 text-white px-2 py-1 rounded"
-                            onClick={() => handleRemovePoint(product.id)}
-                            disabled={
-                              pointsAdded[product.id] === 0
-                            }
-                          >
-                            -1 Ponto
-                          </button>
-                        </div>
-                      </footer>
-                      <div className="p-3">
-                        {pointsAdded[product.id] &&
-                          Array.from({ length: pointsAdded[product.id] }).map(
-                            (_, index) => (
-                              <span
-                                key={index}
-                                className="ml-1 bg-blue-500 text-white px-2 py-1 rounded transition-all duration-300"
+            {Array.isArray(displayedProducts) &&
+              displayedProducts.map((product) => {
+                const totalPoints =
+                  (product.pointsAdded || 0) + (pointsAdded[product.id] || 0);
+                return (
+                  <>
+                    {isPopupOpen && selectedProductId === product.id && (
+                      <PopupDetails
+                        id={selectedProductId}
+                        onClose={handleClosePopup}
+                      />
+                    )}
+                    <section
+                      key={product.id}
+                      className={`lg:hidden flex p-4 rounded-lg shadow-md relative my-5 ${darkMode
+                        ? "bg-gray-800 text-gray-100"
+                        : "bg-white text-gray-900"
+                        }`}
+                    >
+                      <div className="flex-grow pl-4">
+                        <header className="flex justify-between items-center mb-2">
+                          <h2 className="font-semibold text-sm">
+                            {product.nome}
+                          </h2>
+                          <div className="flex items-center space-x-2">
+                            <span className="text-xs">{`Idade: ${product.idade} anos`}</span>
+                            <div className="relative">
+                              <button
+                                onClick={() => toggleMenu(product.id)}
+                                className="focus:outline-none"
                               >
-                                +1
-                              </span>
-                            )
+                                &#x22EE;
+                              </button>
+                              {menuVisibleId === product.id && (
+                                <div className="absolute right-0 mt-2 w-32 bg-white border rounded-md shadow-lg z-10">
+                                  {state.level != "ADMIN" ? (
+                                    <></>
+                                  ) : (
+                                    <>
+                                      <button
+                                        onClick={() => {
+                                          handleEditMobille(product);
+                                          setMenuVisibleId(null);
+                                        }}
+                                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                      >
+                                        Editar
+                                      </button>
+                                      <button
+                                        onClick={() => {
+                                          handleDelete([product.id]);
+                                          setMenuVisibleId(null);
+                                        }}
+                                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                      >
+                                        Excluir
+                                      </button>
+                                    </>
+                                  )}
+                                  <button
+                                    onClick={() => handleOpenPopup(product.id)}
+                                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                  >
+                                    Info
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </header>
+                        <p className="text-sm mb-2">...</p>
+                        <footer className="flex justify-between text-sm">
+                          <span>{`Pontos: ${product.points.length}`}</span>
+                          <div>
+                            <button
+                              className="ml-1 bg-blue-500 text-white px-2 py-1 rounded"
+                              onClick={() => handleAddPoint(product.id)}
+                              disabled={
+                                pointsAdded[product.id] >= 4
+                              }
+                            >
+                              +1 Ponto
+                            </button>
+                            <button
+                              className="ml-1 bg-red-500 text-white px-2 py-1 rounded"
+                              onClick={() => handleRemovePoint(product.id)}
+                              disabled={
+                                pointsAdded[product.id] === 0
+                              }
+                            >
+                              -1 Ponto
+                            </button>
+                          </div>
+                        </footer>
+                        <div className="p-3">
+                          {totalPoints > 0 && (
+                            <div className="flex mt-2">
+                              {Array.from({ length: totalPoints }).map(
+                                (_, index) => (
+                                  <span
+                                    key={`${product.id}-${index}`}
+                                    className="ml-1 bg-blue-500 text-white px-2 py-1 rounded-full transition-all duration-300"
+                                  >
+                                    {loading[product.id] ? (
+                                      <span>...</span> // Ou use um ícone de carregamento, como o de "spinner"
+                                    ) : (
+                                      "+1"
+                                    )}
+                                  </span>
+                                )
+                              )}
+                            </div>
                           )}
+                        </div>
                       </div>
-                    </div>
-                  </section>
-                </>
-              ))
-            ) : (
-              <p>No products found.</p>
-            )}
+                    </section>
+                  </>
+                )
+
+              })}
           </>
         </InfiniteScroll>
       </div>
