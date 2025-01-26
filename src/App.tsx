@@ -78,24 +78,17 @@ function App() {
               <Route path="/loader" element={<Loader />} />
               <Route
                 path="/sala/9-11"
-                element={loading ? <Loader /> : <Class min={9} max={11} />}
+                element={loading ? <Loader /> : <Class min={8} max={12} />}
               />
               <Route
                 path="/sala/6-8"
-                element={loading ? <Loader /> : <Class min={6} max={8} />}
+                element={loading ? <Loader /> : <Class min={5} max={9} />}
               />
               <Route
                 path="/sala/3-5"
-                element={loading ? <Loader /> : <Class min={3} max={5} />}
+                element={loading ? <Loader /> : <Class min={2} max={6} />}
               />
-              <Route
-                path="/sala/8-11"
-                element={loading ? <Loader /> : <Class min={8} max={11} />}
-              />
-              <Route
-                path="/sala/4-7"
-                element={loading ? <Loader /> : <Class min={4} max={7} />}
-              />
+
               <Route path="/" element={loading ? <Loader /> : <Navigation />} />
               <Route
                 path="/config"

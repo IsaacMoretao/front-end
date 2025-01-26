@@ -77,19 +77,7 @@ export function Home() {
             <ButtonHover name={"sala de 9 a 11"} />
           </Link>
 
-          <Link
-            to="/sala/4-7"
-            className="text-2xl text-center block text-white"
-          >
-            <ButtonHover name={"sala de 4 a 7"} />
-          </Link>
-
-          <Link
-            to="/sala/8-11"
-            className="text-2xl text-center block text-white"
-          >
-            <ButtonHover name={"sala de 8 a 11"} />
-          </Link>
+          
         </div>
       </div>
       <div style={{ display: "none" }}>
