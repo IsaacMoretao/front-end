@@ -16,6 +16,7 @@ import Logo from "../../assets/LogoSmall.svg";
 import { api } from "../lib/axios";
 import { Database } from "phosphor-react";
 
+
 export function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -46,42 +47,37 @@ export function Login() {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
-      const response = await fetch("https://backend-kids.onrender.com/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ username: email, password }),
+      const response = await api.post("/login", {
+        username: email,
+        password,
       });
-      if (!response.ok) {
-        throw new Error("Falha ao fazer login");
-      }
-      const responseData = await response.json();
-      console.log("Resposta do servidor:", responseData);
-
-      const { token, level, userId, AceesAdmin } = responseData;
-
+  
+      console.log("Resposta do servidor:", response.data);
+  
+      const { token, level, userId, AceesAdmin } = response.data;
+  
       const aceesAdmin = AceesAdmin;
       if (!userId) {
         console.error("userId não foi encontrado na resposta do servidor");
       }
       const stringUserId = userId ? String(userId) : "";
-
+  
       // Armazena no localStorage
       localStorage.setItem("token", token);
       localStorage.setItem("level", level);
       localStorage.setItem("userId", stringUserId);
-      localStorage.setItem("aceesAdmin", aceesAdmin)
-
+      localStorage.setItem("aceesAdmin", aceesAdmin);
+  
       dispatch({
         type: "LOGIN",
         payload: {
           token,
           level,
           userId: stringUserId,
-          aceesAdmin: aceesAdmin
+          aceesAdmin: aceesAdmin,
         },
       });
+  
       navigate("/");
     } catch (error) {
       console.error("Erro ao fazer login:", error);

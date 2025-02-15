@@ -12,40 +12,29 @@ import { useTheme } from "../Context/ThemeContext";
 import { useAuth } from "../Context/AuthProvider";
 import { usePointsContext } from "../Context/PointsContext";
 import { PopupDetails } from "../components/PopupDetails";
+import { useProductContext } from "../Context/DataContext";
 
 interface Point { }
 
 interface Product {
   id: number;
   nome: string;
-  idade: string; // Data no formato "YYYY-MM-DD"
+  idade?: string; // Data no formato "YYYY-MM-DD"
   pontos: number;
   pointsAdded: number;
-  dateOfBirth: string;
+  dateOfBirth?: string;
   points: Point[];
 }
-
-// interface ReturnedProducts {
-//     id: number;
-//   nome: string;
-//   idade: number;
-//   pointsAdded: number;
-//   points: Array<Object>;
-// }
 
 interface Class {
   min: number;
   max: number;
 }
 
-// interface PointsAdded {
-//   [key: number]: number[];
-// }
-
 export function Class({ min, max }: Class) {
   const [selected, setSelected] = useState<string[]>([]);
   const { pointsAdded, handleAddPoint, handleRemovePoint, loading } = usePointsContext();
-  const [products, setProducts] = useState<Product[]>([]);
+  // const [products, setProducts] = useState<Product[]>([]);
   const [displayedProducts, setDisplayedProducts] = useState<Product[]>([]);
   const [selectedItems, setSelectedItems] = useState<number[]>([]);
   const [hasMore, setHasMore] = useState(true);
@@ -55,6 +44,7 @@ export function Class({ min, max }: Class) {
   const [isEditing, setIsEditing] = useState(false);
   const [menuVisibleId, setMenuVisibleId] = useState<number | null>(null);
   const { darkMode } = useTheme();
+  const { products, DataReload, setMin, setMax } = useProductContext();
   const [searchTerm, setSearchTerm] = useState<string>("");
   const { state } = useAuth();
   const [selectedProductId, setSelectedProductId] = useState<number | null>(
@@ -73,42 +63,10 @@ export function Class({ min, max }: Class) {
     setSelectedProductId(null); // Limpa o ID quando o popup é fechado
   };
 
-  const fetchProducts = async (): Promise<Product[]> => {
-    try {
-      const response = await api.get("/children/filterByAge", {
-        params: { minAge: min, maxAge: max },
-      });
-      // console.log(response)
-      // setTotalProductsCount(response.data.length);
-      if (Array.isArray(response.data)) {
-        return response.data;
-      } else {
-        console.error("Os dados retornados não são um array:", response.data);
-        return [];
-      }
-    } catch (error) {
-      console.error("Erro ao buscar os dados:", error);
-      return [];
-    }
-  };
-
   useEffect(() => {
-    const loadProducts = async () => {
-      const allProducts = await fetchProducts();
-      console.log(allProducts); // Verifique o conteúdo de allProducts
-      if (Array.isArray(allProducts)) {
-        const sortedProducts = allProducts.sort((a, b) =>
-          a.nome.localeCompare(b.nome)
-        );
-        setProducts(sortedProducts);
-        setDisplayedProducts(sortedProducts.slice(0, ITEMS_PER_PAGE));
-        setHasMore(sortedProducts.length > ITEMS_PER_PAGE);
-      } else {
-        console.error("Os dados retornados não são um array.");
-      }
-    };
-
-    loadProducts();
+    setMin(min);
+    setMax(max);
+    DataReload();
   }, [min, max]);
 
   const handleSelectItem = (id: number) => {
@@ -154,7 +112,10 @@ export function Class({ min, max }: Class) {
     setOpen(true);
   };
 
-  const handleClose = () => setOpen(false);
+  const handleClose = () => {
+    setOpen(false);
+    DataReload();
+  }
 
   const handleSave = async () => {
     if (currentProduct) {
@@ -182,13 +143,15 @@ export function Class({ min, max }: Class) {
 
         if (isEditing) {
           await api.put(`/children/${currentProduct.id}`, productToSave);
-          setProducts((prev) =>
-            prev.map((p) => (p.id === currentProduct.id ? productToSave : p))
-          );
+          // setProducts((prev) =>
+          //   prev.map((p) => (p.id === currentProduct.id ? productToSave : p))
+          // );
         } else {
           const response = await api.post("/children", [productToSave]);
-          setProducts((prev) => [...prev, response.data]);
+          console.log(response)
+          DataReload();
         }
+        DataReload();
         handleClose();
       } catch (error) {
         console.error("Erro ao salvar produto:", error);
@@ -203,8 +166,7 @@ export function Class({ min, max }: Class) {
       });
 
       if (response.status === 200) {
-        setProducts((prev) => prev.filter((p) => !ids.includes(p.id)));
-        setSelectedItems([]);
+        DataReload();
       }
     } catch (error) {
       console.error("Error deleting products:", error);
@@ -294,6 +256,7 @@ export function Class({ min, max }: Class) {
               <button onClick={handleCreate} className="px-4 py-2">
                 <NotePencil size={35} color="#5C46B2" weight="duotone" />
               </button>
+
               {state.level === "ADMIN" ? (
                 <button
                   onClick={() => handleDelete(selectedItems)}
@@ -439,9 +402,7 @@ export function Class({ min, max }: Class) {
                             <button
                               className="ml-1 bg-blue-500 text-white px-2 py-1 rounded"
                               onClick={() => handleAddPoint(product.id)}
-                              disabled={
-                                pointsAdded[product.id] >= 4
-                              }
+                              disabled={pointsAdded[product.id] >= 4}
                             >
                               +1 Ponto
                             </button>

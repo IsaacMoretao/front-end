@@ -6,6 +6,7 @@ import {
 } from "react";
 import { api } from "../lib/axios";
 import { useAuth } from "./AuthProvider";
+import { useProductContext } from "./DataContext";
 
 interface PointsAdded {
   [key: number]: number;
@@ -37,6 +38,8 @@ export const PointsProvider = ({ children }: PointsProviderProps) => {
 
   const [pointsAdded, setPointsAdded] = useState<PointsAdded>({});
   const [loading, setLoading] = useState<{ [key: number]: boolean }>({});
+  const { DataReload } = useProductContext();
+
 
   const handleAddPoint = async (productId: number) => {
     try {
@@ -51,14 +54,16 @@ export const PointsProvider = ({ children }: PointsProviderProps) => {
           const currentPoints = prevPoints[productId] || 0;
           if (currentPoints < 4) {
             return { ...prevPoints, [productId]: currentPoints + 1 };
+
           }
           return prevPoints;
+          
         });
       }
     } catch (error) {
       console.error("Erro ao adicionar ponto:", error);
     } finally {
-      // Marca o fim do carregamento
+      DataReload();
       setLoading((prev) => ({ ...prev, [productId]: false }));
     }
   };
@@ -84,6 +89,8 @@ export const PointsProvider = ({ children }: PointsProviderProps) => {
       }
     } catch (error) {
       console.error("Erro ao remover ponto:", error);
+    } finally {
+      DataReload();
     }
   };
 
