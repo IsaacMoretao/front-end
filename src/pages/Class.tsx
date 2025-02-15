@@ -420,20 +420,14 @@ export function Class({ min, max }: Class) {
                         <div className="p-3">
                           {totalPoints > 0 && (
                             <div className="flex mt-2">
-                              {Array.from({ length: totalPoints }).map(
-                                (_, index) => (
-                                  <span
-                                    key={`${product.id}-${index}`}
-                                    className="ml-1 bg-blue-500 text-white px-2 py-1 rounded-full transition-all duration-300"
-                                  >
-                                    {loading[product.id] ? (
-                                      <span>...</span> // Ou use um ícone de carregamento, como o de "spinner"
-                                    ) : (
-                                      "+1"
-                                    )}
-                                  </span>
-                                )
-                              )}
+                              {Array.from({ length: product.pontos }, (_, index) => (
+                                <span
+                                  key={`${product.id}-${index}`}
+                                  className="ml-1 bg-blue-500 text-white px-2 py-1 rounded-full animate-pulse"
+                                >
+                                  +1
+                                </span>
+                              ))}
                             </div>
                           )}
                         </div>

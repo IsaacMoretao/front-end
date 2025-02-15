@@ -93,38 +93,7 @@ export const PointsProvider = ({ children }: PointsProviderProps) => {
       DataReload();
     }
   };
-
-  // const handleRemovePoint = async (productId: number) => {
-  //   if (!pointsAdded.hasOwnProperty(productId)) return;
-  //   try {
-  //     const response = await api.delete(`/deletePoint/${productId}`);
-  //     if (response.status === 200) {
-  //       setPointsAdded((prevPoints) => {
-  //         const currentTime = Date.now();
-  //         const updatedPoints = prevPoints[productId] || [];
-  //         const filteredPoints = updatedPoints.filter(
-  //           (timestamp) => currentTime - timestamp <= 60 * 1000 // 5 Horas
-  //         );
-
-  //         if (filteredPoints.length > 0) {
-  //           filteredPoints.shift();
-  //           const newPointsAdded = {
-  //             ...prevPoints,
-  //             [productId]: filteredPoints,
-  //           };
-  //           localStorage.setItem('pointsAdded', JSON.stringify(newPointsAdded));
-  //           return newPointsAdded;
-  //         }
-  //         return prevPoints;
-  //       });
-  //     } else {
-  //       alert('O ponto não pode ser excluído após 1 minuto.');
-  //     }
-  //   } catch (error) {
-  //     console.error('Erro ao excluir ponto:', error);
-  //   }
-  // };
-
+  
   return (
     <PointsContext.Provider
       value={{ pointsAdded, handleAddPoint, handleRemovePoint, loading }}
