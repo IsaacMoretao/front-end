@@ -24,6 +24,7 @@ interface Product {
   pointsAdded: number;
   dateOfBirth?: string;
   points: Point[];
+  pointsTheLastHours: number;
 }
 
 interface Class {
@@ -33,7 +34,7 @@ interface Class {
 
 export function Class({ min, max }: Class) {
   const [selected, setSelected] = useState<string[]>([]);
-  const { pointsAdded, handleAddPoint, handleRemovePoint, loading } = usePointsContext();
+  const { pointsAdded, handleAddPoint, handleRemovePoint } = usePointsContext();
   // const [products, setProducts] = useState<Product[]>([]);
   const [displayedProducts, setDisplayedProducts] = useState<Product[]>([]);
   const [selectedItems, setSelectedItems] = useState<number[]>([]);
@@ -107,7 +108,7 @@ export function Class({ min, max }: Class) {
   };
 
   const handleCreate = () => {
-    setCurrentProduct({ id: 0, nome: "", idade: "", pointsAdded: 0, dateOfBirth: "", pontos: 0, points: [] });
+    setCurrentProduct({ id: 0, nome: "", idade: "", pointsTheLastHours: 0, pointsAdded: 0, dateOfBirth: "", pontos: 0, points: [] });
     setIsEditing(false);
     setOpen(true);
   };
@@ -420,7 +421,7 @@ export function Class({ min, max }: Class) {
                         <div className="p-3">
                           {totalPoints > 0 && (
                             <div className="flex mt-2">
-                              {Array.from({ length: product.pontos }, (_, index) => (
+                              {Array.from({ length: product.pointsTheLastHours }, (_, index) => (
                                 <span
                                   key={`${product.id}-${index}`}
                                   className="ml-1 bg-blue-500 text-white px-2 py-1 rounded-full animate-pulse"

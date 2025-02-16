@@ -13,6 +13,7 @@ interface Product {
   birthDate: string;
   pontos: number;
   pointsAdded: number;
+  pointsTheLastHours: number;
   points: Point[];
 }
 
