@@ -24,7 +24,6 @@ interface Product {
   pointsAdded: number;
   dateOfBirth?: string;
   points: Point[];
-  pointsTheLastHours: number;
 }
 
 interface Class {
@@ -108,7 +107,7 @@ export function Class({ min, max }: Class) {
   };
 
   const handleCreate = () => {
-    setCurrentProduct({ id: 0, nome: "", idade: "", pointsTheLastHours: 0, pointsAdded: 0, dateOfBirth: "", pontos: 0, points: [] });
+    setCurrentProduct({ id: 0, nome: "", idade: "", pointsAdded: 0, dateOfBirth: "", pontos: 0, points: [] });
     setIsEditing(false);
     setOpen(true);
   };
@@ -328,8 +327,7 @@ export function Class({ min, max }: Class) {
           <>
             {Array.isArray(displayedProducts) &&
               displayedProducts.map((product) => {
-                const totalPoints =
-                  (product.pointsAdded || 0) + (pointsAdded[product.id] || 0);
+          
                 return (
                   <>
                     {isPopupOpen && selectedProductId === product.id && (
@@ -403,7 +401,7 @@ export function Class({ min, max }: Class) {
                             <button
                               className="ml-1 bg-blue-500 text-white px-2 py-1 rounded"
                               onClick={() => handleAddPoint(product.id)}
-                              disabled={pointsAdded[product.id] >= 4}
+                              disabled={product.pointsAdded >= 4}
                             >
                               +1 Ponto
                             </button>
@@ -419,18 +417,16 @@ export function Class({ min, max }: Class) {
                           </div>
                         </footer>
                         <div className="p-3">
-                          {totalPoints > 0 && (
-                            <div className="flex mt-2">
-                              {Array.from({ length: product.pointsTheLastHours }, (_, index) => (
-                                <span
-                                  key={`${product.id}-${index}`}
-                                  className="ml-1 bg-blue-500 text-white px-2 py-1 rounded-full animate-pulse"
-                                >
-                                  +1
-                                </span>
-                              ))}
-                            </div>
-                          )}
+                          <div className="flex mt-2">
+                            {Array.from({ length: product.pointsAdded }).map((_, index) => (
+                              <span
+                                key={index}
+                                className="ml-1 bg-blue-500 text-white px-2 py-1 rounded-full"
+                              >
+                                +1
+                              </span>
+                            ))}
+                          </div>
                         </div>
                       </div>
                     </section>

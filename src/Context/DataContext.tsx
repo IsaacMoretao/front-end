@@ -13,7 +13,6 @@ interface Product {
   birthDate: string;
   pontos: number;
   pointsAdded: number;
-  pointsTheLastHours: number;
   points: Point[];
 }
 
@@ -28,7 +27,6 @@ const ProductContext = createContext<ProductContextType | undefined>(undefined);
 
 export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [products, setProducts] = useState<Product[]>([]);
-  
   const { salaParams } = useParams<{ salaParams?: string }>();
 
   // Inicializa os estados diretamente com os valores da URL
