@@ -1,14 +1,18 @@
 import { useTheme } from "../Context/ThemeContext";
 import "../Stylles/Button.css"
 
-export function ButtonHover( props:{name: string} ) {
+export function ButtonHover(props: { name: string, icon?: React.ReactNode }) {
   const { darkMode } = useTheme();
 
-  return(
+  return (
     <div className="max-h-[72px]">
       <div className="buttons">
         <button className={`blob-btn ${darkMode ? "text-purple-400" : "text-purple-500"}`}>
-          {props.name}
+          <div className="flex items-center justify-center gap-5">
+            {props.icon}
+            {props.name}
+          </div>
+
           <span className={`blob-btn__inner ${darkMode ? "bg-gray-800" : "bg-white"}`}>
             <span className={`blob-btn__blobs`}>
               <span className="blob-btn__blob"></span>

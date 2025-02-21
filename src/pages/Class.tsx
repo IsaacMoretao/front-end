@@ -53,6 +53,35 @@ export function Class({ min, max }: Class) {
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const ITEMS_PER_PAGE = 10;
 
+  const [animatePoints, setAnimatePoints] = useState<{ [key: number]: boolean }>({});
+  const [isAnimating, setIsAnimating] = useState(false);
+
+  const handleAddPointWithAnimation = async (productId: number) => {
+    setIsAnimating(true);
+
+    await handleAddPoint(productId); // Chama a função para adicionar o ponto
+    setAnimatePoints((prev) => ({ ...prev, [productId]: true })); // Ativa animação
+
+    setTimeout(() => {
+      setIsAnimating(false); // Reabilita o botão depois da animação
+    }, 500); // 500ms é a duração da animação
+  };
+
+  const handleRemovePointWithAnimation = async (productId: number) => {
+    await handleRemovePoint(productId); // Chama a função para remover o ponto
+    setAnimatePoints((prev) => ({ ...prev, [productId]: true })); // Ativa animação
+  };
+
+  // Limpa a animação após um curto período
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setAnimatePoints({});
+    }, 1000); // Limpa a animação após 500ms (ajustável conforme necessidade)
+
+    return () => clearTimeout(timeout); // Limpa o timeout quando o componente for desmontado
+  }, [pointsAdded]);
+
+
   const handleOpenPopup = (id: number) => {
     setSelectedProductId(id);
     setIsPopupOpen(true);
@@ -327,7 +356,7 @@ export function Class({ min, max }: Class) {
           <>
             {Array.isArray(displayedProducts) &&
               displayedProducts.map((product) => {
-          
+
                 return (
                   <>
                     {isPopupOpen && selectedProductId === product.id && (
@@ -399,29 +428,36 @@ export function Class({ min, max }: Class) {
                           <span>{`Pontos: ${product.points.length}`}</span>
                           <div>
                             <button
-                              className="ml-1 bg-blue-500 text-white px-2 py-1 rounded"
-                              onClick={() => handleAddPoint(product.id)}
-                              disabled={product.pointsAdded >= 4}
+                              className={`ml-1 bg-blue-500 text-white px-2 py-1 rounded transition-all duration-300 ease-in-out hover:scale-110 active:scale-90 relative overflow-hidden ${isAnimating ? "cursor-not-allowed" : ""
+                                }`}
+                              onClick={() => handleAddPointWithAnimation(product.id)}
+                              disabled={isAnimating || pointsAdded[product.id] >= 4}
                             >
+                              {/* Borda animada */}
+                              <span
+                                className={`absolute inset-0 border-2 border-green-500 rounded-full transform transition-all duration-500 ease-in-out ${isAnimating ? "scale-100" : "scale-0"
+                                  }`}
+                              ></span>
                               +1 Ponto
                             </button>
+
                             <button
-                              className="ml-1 bg-red-500 text-white px-2 py-1 rounded"
-                              onClick={() => handleRemovePoint(product.id)}
-                              disabled={
-                                pointsAdded[product.id] === 0
-                              }
+                              className="ml-1 bg-red-500 text-white px-2 py-1 rounded transition-transform duration-300 ease-in-out hover:scale-110 active:scale-90"
+                              onClick={() => handleRemovePointWithAnimation(product.id)}
+                              disabled={pointsAdded[product.id] === 0}
                             >
                               -1 Ponto
                             </button>
                           </div>
                         </footer>
+
                         <div className="p-3">
                           <div className="flex mt-2">
-                            {Array.from({ length: product.pointsAdded }).map((_, index) => (
+                            {Array.from({ length: pointsAdded[product.id] || 0 }).map((_, index) => (
                               <span
-                                key={index}
-                                className="ml-1 bg-blue-500 text-white px-2 py-1 rounded-full"
+                                key={`${product.id}-${index}`}
+                                className={`ml-1 bg-blue-500 text-white px-2 py-1 rounded-full transition-all duration-700 ease-in-out transform ${animatePoints[product.id] ? "animate-pulse scale-105" : ""
+                                  }`}
                               >
                                 +1
                               </span>

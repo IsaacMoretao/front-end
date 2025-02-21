@@ -20,6 +20,7 @@
     "chart.js": "^4.4.3",
     "dotenv": "^16.4.5",
     "framer-motion": "^12.4.4",
+    "gsap": "^3.12.7",
     "jsonwebtoken": "^9.0.2",
     "jspdf": "^2.5.1",
     "jspdf-autotable": "^3.8.2",

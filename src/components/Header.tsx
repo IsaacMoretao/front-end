@@ -9,6 +9,7 @@ import {
 import { useState } from "react";
 import {
   ChalkboardTeacher,
+  Coins,
   Gear,
   House,
   NotePencil,
@@ -55,6 +56,8 @@ export function Header() {
     title = "CONFIG";
   } else if (path.endsWith("/admin")) {
     title = "ADMIN";
+  }else if (path.endsWith("/galardao")) {
+    title = "GALARDÃO";
   } else if (path.endsWith("/Relatorio")) {
     title = "RELATORIO";
     report = "hidden";
@@ -69,6 +72,8 @@ export function Header() {
       return <ChalkboardTeacher size={36} color="#fff" weight="duotone" />;
     } else if (path.endsWith("/config")) {
       return <Gear size={36} color="#fff" weight="duotone" />;
+    } else if (path.endsWith("/galardao")) {
+      return <Coins size={36} color="#fff" weight="duotone" />;
     } else if (path.endsWith("/admin")) {
       return <PresentationChart size={36} color="#fff" weight="duotone" />;
     }

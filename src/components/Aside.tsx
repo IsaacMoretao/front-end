@@ -71,9 +71,8 @@ export function Aside() {
   return (
     <>
       <aside
-        className={`fixed z-50 flex flex-col items-center py-3 left-0 lg:top-0 bottom-0 lg:w-16 max-lg:h-16 max-lg:right-0 ${
-          darkMode ? "bg-gray-800" : "bg-white"
-        }, ${report}`}
+        className={`fixed z-50 flex flex-col items-center py-3 left-0 lg:top-0 bottom-0 lg:w-16 max-lg:h-16 max-lg:right-0 ${darkMode ? "bg-gray-800" : "bg-white"
+          } ${report}`}
       >
         <figure className="max-lg:hidden">
           <img src={Logo} alt="" className="h-12 mb-7 w-auto" />
@@ -85,9 +84,8 @@ export function Aside() {
 
           {isLoading ? (
             <span
-              className={`loader inline-block w-5 h-5 border-2 border-t-2 border-t-transparent ${
-                darkMode ? "border-white" : "border-black"
-              } rounded-full animate-spin`}
+              className={`loader inline-block w-5 h-5 border-2 border-t-2 border-t-transparent ${darkMode ? "border-white" : "border-black"
+                } rounded-full animate-spin`}
             ></span>
           ) : (
             <button onClick={verifyServer}>
