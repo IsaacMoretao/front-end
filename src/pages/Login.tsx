@@ -84,10 +84,6 @@ export function Login() {
       setError("Erro ao fazer login. Por favor, tente novamente.");
     }
   };
-  const handleProfessorLogin = () => {
-    setEmail("verboaruja@kids.com");
-    setPassword("123456");
-  };
 
   return (
     <Container>
@@ -162,15 +158,6 @@ export function Login() {
                 style={{ marginTop: "16px" }}
               >
                 Login
-              </Button>
-              <Button
-                variant="contained"
-                color="secondary"
-                fullWidth
-                style={{ marginTop: "16px" }}
-                onClick={handleProfessorLogin}
-              >
-                Entrar como Escalado
               </Button>
             </form>
           </Paper>

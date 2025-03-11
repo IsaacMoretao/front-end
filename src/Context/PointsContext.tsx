@@ -7,6 +7,7 @@ import {
 import { api } from "../lib/axios";
 import { useAuth } from "./AuthProvider";
 import { useProductContext } from "./DataContext";
+import { ModalResponse } from "../components/ModalResponse";
 
 interface PointsAdded {
   [key: number]: number;
@@ -35,6 +36,11 @@ interface PointsProviderProps {
 
 export const PointsProvider = ({ children }: PointsProviderProps) => {
   const { state } = useAuth();
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalData, setModalData] = useState<{ status: "success" | "error"; message: string }>({
+    status: "success",
+    message: "",
+  });
 
   const [pointsAdded, setPointsAdded] = useState<PointsAdded>({});
   const [loading, setLoading] = useState<{ [key: number]: boolean }>({});
@@ -60,8 +66,14 @@ export const PointsProvider = ({ children }: PointsProviderProps) => {
           
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erro ao adicionar ponto:", error);
+      const errorMessage = error.response?.data?.error || 'Erro desconhecido';
+      setModalData({
+        status: "error",
+        message: `Erro ao Adicionar ponto:  ` + ` ${errorMessage}`,
+      });
+      setModalOpen(true);
     } finally {
       DataReload();
       setLoading((prev) => ({ ...prev, [productId]: false }));
@@ -87,8 +99,14 @@ export const PointsProvider = ({ children }: PointsProviderProps) => {
           return prevPoints; // Mantém o estado atual se já for 0
         });
       }
-    } catch (error) {
-      console.error("Erro ao remover ponto:", error);
+    }catch (error: any) {
+      console.error("Erro ao retirar ponto:", error);
+      const errorMessage = error.response?.data?.error || 'Erro desconhecido';
+      setModalData({
+        status: "error",
+        message: `Erro ao retirar ponto:  ` + ` ${errorMessage}`,
+      });
+      setModalOpen(true);
     } finally {
       DataReload();
     }
@@ -99,6 +117,12 @@ export const PointsProvider = ({ children }: PointsProviderProps) => {
       value={{ pointsAdded, handleAddPoint, handleRemovePoint, loading }}
     >
       {children}
+      <ModalResponse
+        open={modalOpen}
+        status={modalData.status}
+        response={modalData.message}
+        onClose={() => setModalOpen(false)}
+      />
     </PointsContext.Provider>
   );
 };

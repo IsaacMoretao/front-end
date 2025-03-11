@@ -13,6 +13,7 @@ import { useAuth } from "../Context/AuthProvider";
 import { usePointsContext } from "../Context/PointsContext";
 import { PopupDetails } from "../components/PopupDetails";
 import { useProductContext } from "../Context/DataContext";
+import { ModalResponse } from "../components/ModalResponse";
 
 interface Point { }
 
@@ -32,29 +33,36 @@ interface Class {
 }
 
 export function Class({ min, max }: Class) {
-  const [selected, setSelected] = useState<string[]>([]);
   const { pointsAdded, handleAddPoint, handleRemovePoint } = usePointsContext();
-  // const [products, setProducts] = useState<Product[]>([]);
+  const { products, DataReload, setMin, setMax } = useProductContext();
+  const { darkMode } = useTheme();
+  const { state } = useAuth();
+
+  const [page, setPage] = useState(0);
+  const [open, setOpen] = useState(false);
+  const [menuVisibleId, setMenuVisibleId] = useState<number | null>(null);
+  const [animatePoints, setAnimatePoints] = useState<{ [key: number]: boolean }>({});
+  const [isAnimating, setIsAnimating] = useState(false);
+
+  const [selected, setSelected] = useState<string[]>([]);
   const [displayedProducts, setDisplayedProducts] = useState<Product[]>([]);
   const [selectedItems, setSelectedItems] = useState<number[]>([]);
   const [hasMore, setHasMore] = useState(true);
-  const [page, setPage] = useState(0);
-  const [open, setOpen] = useState(false);
   const [currentProduct, setCurrentProduct] = useState<Product | null>(null);
-  const [isEditing, setIsEditing] = useState(false);
-  const [menuVisibleId, setMenuVisibleId] = useState<number | null>(null);
-  const { darkMode } = useTheme();
-  const { products, DataReload, setMin, setMax } = useProductContext();
   const [searchTerm, setSearchTerm] = useState<string>("");
-  const { state } = useAuth();
   const [selectedProductId, setSelectedProductId] = useState<number | null>(
     null
   );
+  const [isEditing, setIsEditing] = useState(false);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const ITEMS_PER_PAGE = 10;
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalData, setModalData] = useState<{ status: "success" | "error"; message: string }>({
+    status: "success",
+    message: "",
+  });
 
-  const [animatePoints, setAnimatePoints] = useState<{ [key: number]: boolean }>({});
-  const [isAnimating, setIsAnimating] = useState(false);
+
 
   const handleAddPointWithAnimation = async (productId: number) => {
     setIsAnimating(true);
@@ -76,6 +84,7 @@ export function Class({ min, max }: Class) {
   useEffect(() => {
     const timeout = setTimeout(() => {
       setAnimatePoints({});
+      DataReload();
     }, 1000); // Limpa a animação após 500ms (ajustável conforme necessidade)
 
     return () => clearTimeout(timeout); // Limpa o timeout quando o componente for desmontado
@@ -104,35 +113,6 @@ export function Class({ min, max }: Class) {
         ? prevSelected.filter((item) => item !== id)
         : [...prevSelected, id]
     );
-  };
-
-  const handleEdit = () => {
-    if (selectedItems.length === 1) {
-      const product = products.find((p) => p.id === selectedItems[0]);
-      if (product) {
-        setCurrentProduct(product);
-        setIsEditing(true);
-        setOpen(true);
-      }
-    }
-  };
-
-  const handleEditMobille = (product?: Product) => {
-    console.log("product:", product);
-    console.log("selected:", setSelected);
-    console.log("products:", products);
-
-    if (product) {
-      setCurrentProduct(product);
-      setIsEditing(true);
-    } else if (Array.isArray(selected) && selected.length === 1) {
-      const product = products?.find((p) => p.id.toString() === selected[0]);
-      if (product) {
-        setCurrentProduct(product);
-        setIsEditing(true);
-      }
-    }
-    setOpen(true);
   };
 
   const handleCreate = () => {
@@ -188,19 +168,83 @@ export function Class({ min, max }: Class) {
     }
   };
 
+  const formatDateToInput = (date: string): string => {
+    const [day, month, year] = date.split('/'); // Se a data for no formato 'DD/MM/YYYY'
+    return `${year}-${month}-${day}`; // Retorna 'YYYY-MM-DD'
+  };
+
+  const handleEditMobille = (product?: Product) => {
+    console.log("product:", product);
+    console.log("selected:", setSelected);
+    console.log("products:", products);
+
+    if (product) {
+      setCurrentProduct({
+        ...product,
+        dateOfBirth: product.dateOfBirth
+            ? formatDateToInput(product.dateOfBirth)
+            : "", // Garantindo que a data seja formatada corretamente
+    });
+      setIsEditing(true);
+    } else if (Array.isArray(selected) && selected.length === 1) {
+      const product = products?.find((p) => p.id.toString() === selected[0]);
+      if (product) {
+        setCurrentProduct(product);
+        setIsEditing(true);
+      }
+    }
+    setOpen(true);
+  };
+
+  const handleEdit = () => {
+    if (selectedItems.length === 1) {
+      const product = products.find((p) => p.id === selectedItems[0]);
+      if (product) {
+        const formattedDateOfBirth = product.dateOfBirth
+          ? formatDateToInput(product.dateOfBirth)
+          : '';
+  
+        setCurrentProduct({
+          ...product,
+          dateOfBirth: formattedDateOfBirth, // Atualiza a data para o formato correto
+        });
+        console.log(product);
+        setIsEditing(true);
+        setOpen(true);
+      }
+    }
+  };
+
   const handleDelete = async (ids: number[]) => {
+    // Verificação de confirmação antes de excluir
+    const isConfirmed = window.confirm("Você tem certeza que deseja excluir esta criança?");
+    if (!isConfirmed) {
+      return; // Se o usuário não confirmar, não executa a exclusão
+    }
+
     try {
       const response = await api.delete("/delete/", {
         data: { ids },
       });
 
       if (response.status === 200) {
+        setModalData({
+          status: "success",
+          message: "Criança deletada com sucesso!",
+        });
+        setModalOpen(true);
         DataReload();
       }
-    } catch (error) {
-      console.error("Error deleting products:", error);
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.error || 'Erro desconhecido';
+      setModalData({
+        status: "error",
+        message: `Erro ao excluir criança: ${errorMessage}`,
+      });
+      setModalOpen(true);
     }
   };
+
 
   const toggleMenu = (id: number) => {
     setMenuVisibleId(menuVisibleId === id ? null : id);
@@ -453,7 +497,8 @@ export function Class({ min, max }: Class) {
 
                         <div className="p-3">
                           <div className="flex mt-2">
-                            {Array.from({ length: pointsAdded[product.id] || 0 }).map((_, index) => (
+
+                            {Array.from({ length: product.pointsAdded || 0 }).map((_, index) => (
                               <span
                                 key={`${product.id}-${index}`}
                                 className={`ml-1 bg-blue-500 text-white px-2 py-1 rounded-full transition-all duration-700 ease-in-out transform ${animatePoints[product.id] ? "animate-pulse scale-105" : ""
@@ -552,6 +597,12 @@ export function Class({ min, max }: Class) {
           )}
         </Box>
       </Modal>
+      <ModalResponse
+        open={modalOpen}
+        status={modalData.status}
+        response={modalData.message}
+        onClose={() => setModalOpen(false)}
+      />
     </>
   );
 }
