@@ -12,13 +12,13 @@ import {
   Coins,
   Gear,
   House,
-  NotePencil,
+  UserCircle,
   PresentationChart,
+  NotePencil,
 } from "phosphor-react";
-import { useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { api } from "../lib/axios";
 import { useTheme } from "../Context/ThemeContext";
-// import { useAuth } from "../Context/AuthProvider";
 
 interface Point { }
 
@@ -32,7 +32,6 @@ interface Product {
 }
 
 export function Header() {
-  // const [products, setProducts] = useState<Product[]>([]);
   const [open, setOpen] = useState(false);
   const { darkMode } = useTheme();
   const [isEditing, setIsEditing] = useState(false);
@@ -41,7 +40,6 @@ export function Header() {
 
   const location = useLocation();
   const path = location.pathname;
-  // const { state } = useAuth();
 
   console.log(products)
 
@@ -56,11 +54,13 @@ export function Header() {
     title = "CONFIG";
   } else if (path.endsWith("/admin")) {
     title = "ADMIN";
-  }else if (path.endsWith("/galardao")) {
+  } else if (path.endsWith("/galardao")) {
     title = "GALARDÃO";
   } else if (path.endsWith("/Relatorio")) {
     title = "RELATORIO";
     report = "hidden";
+  } else if (path.endsWith("/myself")) {
+    title = "MEUS DADOS";
   } else {
     title = "...";
   }
@@ -76,13 +76,11 @@ export function Header() {
       return <Coins size={36} color="#fff" weight="duotone" />;
     } else if (path.endsWith("/admin")) {
       return <PresentationChart size={36} color="#fff" weight="duotone" />;
+    } else if (path.endsWith("/myself")) {
+      return <UserCircle size={36} color="#fff" weight="duotone" />
     }
     return null;
   };
-
-  // const toggleDrawer = () => {
-  //   setDrawerOpen(!drawerOpen);
-  // };
 
   const handleClose = () => setOpen(false);
 
@@ -106,23 +104,15 @@ export function Header() {
       };
     });
   };
-  // const numberOfPoints = Number(e.target.value);
-  // const pointsArray = new Array(numberOfPoints).fill({});
 
-  // const productToSave = {
-  //   ...currentProduct,
-  //   points: pointsArray, // Garante que o campo 'points' seja um array de objetos vazios
-  // };
 
   const handleSave = async () => {
     if (currentProduct) {
       try {
-        // Prepara o array de pontos
         const pointsArray: Point[] = Array.isArray(currentProduct.points)
           ? currentProduct.points
           : [];
 
-        // Valida a data de nascimento
         const dateOfBirth = currentProduct.dateOfBirth
           ? new Date(currentProduct.dateOfBirth)
           : null;
@@ -131,7 +121,6 @@ export function Header() {
           throw new Error("Data de nascimento inválida.");
         }
 
-        // Prepara o produto para envio no formato esperado
         const productToSave = {
           ...currentProduct,
           points: pointsArray,
@@ -176,6 +165,12 @@ export function Header() {
               </button>
             </div>
           )}
+          {!path.endsWith("/myself") && !path.startsWith("/sala")  && (
+            <Link to="/myself">
+              <UserCircle size={36} color="#fff" weight="duotone" />
+            </Link>
+          )}
+
 
         </Toolbar>
       </header>

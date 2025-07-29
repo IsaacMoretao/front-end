@@ -47,8 +47,8 @@ function authReducer(state: AuthState, action: AuthAction): AuthState {
   switch (action.type) {
     case "LOGIN":
       localStorage.setItem("token", action.payload.token);
-      localStorage.setItem("level", action.payload.level);
-      localStorage.setItem("userId", action.payload.userId);
+      // localStorage.setItem("level", action.payload.level);
+      // localStorage.setItem("userId", action.payload.userId);
       localStorage.setItem("aceesAdmin", action.payload.aceesAdmin);
       return {
         ...state,

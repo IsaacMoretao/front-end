@@ -174,9 +174,6 @@ export function Class({ min, max }: Class) {
   };
 
   const handleEditMobille = (product?: Product) => {
-    console.log("product:", product);
-    console.log("selected:", setSelected);
-    console.log("products:", products);
 
     if (product) {
       setCurrentProduct({

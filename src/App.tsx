@@ -17,6 +17,7 @@ import { Config } from "./pages/Config";
 import { Admin } from "./pages/Admin";
 import { Relatorio } from "./pages/Relatorio";
 import { Navigation } from "./pages/Navigation";
+import { UserInformation } from "./pages/UserInformation";
 
 function App() {
   const { state, dispatch } = useAuth();
@@ -94,6 +95,7 @@ function App() {
                 path="/config"
                 element={loading ? <Loader /> : <Config />}
               />
+              <Route path="/myself" element={loading ? <Loader /> : <UserInformation />} />
               {state.level === "ADMIN" && (
                 <Route
                   path="/admin"
