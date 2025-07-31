@@ -4,13 +4,13 @@ import { useAuth } from "../Context/AuthProvider"
 import { PencilSimple } from "phosphor-react"
 import { useUpdateUser } from "../http/types/useUpdateUser"
 import { useTheme } from "../Context/ThemeContext";
+import { Skeleton } from "@mui/material";
 
 export function UserInformation() {
   const { state } = useAuth()
   const { data: userData, isLoading, isError } = useUserInformation(state.token)
   const { mutate: updateUser } = useUpdateUser()
   const { darkMode } = useTheme();
-
 
   const [userName, setUserName] = useState("")
   const [newImage, setNewImage] = useState("")
@@ -106,11 +106,19 @@ export function UserInformation() {
           </label>
 
           <figure className="w-full h-full rounded-full bg-gradient-to-r from-purple-500 to-pink-500 p-1">
-            <img
-              src={`${import.meta.env.VITE_BASE_URL}/${newImage}`}
-              alt="avatar"
-              className="h-full w-full rounded-full bg-slate-300 object-cover"
-            />
+            {isLoading ? (
+              <Skeleton variant="circular" width="100%" height="100%" />
+            ) : (
+              <img
+                src={
+                  newImage.startsWith("http")
+                    ? newImage
+                    : `${import.meta.env.VITE_BASE_URL}/${newImage}`
+                }
+                alt="avatar"
+                className="h-full w-full rounded-full bg-slate-300 object-cover"
+              />
+            )}
           </figure>
         </div>
 
