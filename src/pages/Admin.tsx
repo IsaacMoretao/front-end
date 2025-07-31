@@ -565,6 +565,7 @@ export function Admin() {
                           <CaretDown size={32} color="#5C46B2" weight="bold" />
                         </button>
                       </div>
+                      
                     </div>
                   </header>
                   {visibleSections[user.id] && (
