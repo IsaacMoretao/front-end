@@ -36,7 +36,6 @@ function App() {
     const token = localStorage.getItem("token");
     const level = localStorage.getItem("level");
     const userId = localStorage.getItem("userId");
-    const aceesAdmin = localStorage.getItem("aceesAdmin");
 
     if (token) {
       dispatch({
@@ -45,7 +44,6 @@ function App() {
           token,
           level: level ?? "",
           userId: userId ?? "",
-          aceesAdmin: aceesAdmin ?? "",
         },
       });
     }
