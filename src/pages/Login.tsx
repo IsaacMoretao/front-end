@@ -74,7 +74,6 @@ export function Login() {
           token,
           level,
           userId: stringUserId,
-          aceesAdmin: aceesAdmin,
         },
       });
   
