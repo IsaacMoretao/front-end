@@ -62,7 +62,7 @@ export function Class({ min, max }: Class) {
     message: "",
   });
 
-  setSelected(["0"]);
+  setSelected([]);
 
   const handleAddPointWithAnimation = async (productId: number) => {
     setIsAnimating(true);
