@@ -62,7 +62,7 @@ export function Class({ min, max }: Class) {
     message: "",
   });
 
- setSelected(["null"])
+  setSelected(["0"]);
 
   const handleAddPointWithAnimation = async (productId: number) => {
     setIsAnimating(true);
@@ -179,9 +179,9 @@ export function Class({ min, max }: Class) {
       setCurrentProduct({
         ...product,
         dateOfBirth: product.dateOfBirth
-            ? formatDateToInput(product.dateOfBirth)
-            : "", // Garantindo que a data seja formatada corretamente
-    });
+          ? formatDateToInput(product.dateOfBirth)
+          : "", // Garantindo que a data seja formatada corretamente
+      });
       setIsEditing(true);
     } else if (Array.isArray(selected) && selected.length === 1) {
       const product = products?.find((p) => p.id.toString() === selected[0]);
@@ -200,7 +200,7 @@ export function Class({ min, max }: Class) {
         const formattedDateOfBirth = product.dateOfBirth
           ? formatDateToInput(product.dateOfBirth)
           : '';
-  
+
         setCurrentProduct({
           ...product,
           dateOfBirth: formattedDateOfBirth, // Atualiza a data para o formato correto
