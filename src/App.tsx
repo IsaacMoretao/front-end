@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { Login } from "./pages/Login";
 import { Home } from "./pages/Home";
 import { Class } from "./pages/Class";
@@ -50,7 +50,7 @@ function App() {
   }, []);
   return (
     <div className={`${darkMode ? "bg-gray-900" : "bg-gray-100"} font-Poppins`}>
-      <Router>
+      <>
         {state.token && (
           <>
             <Header />
@@ -104,7 +104,7 @@ function App() {
             </>
           )}
         </Routes>
-      </Router>
+      </>
     </div>
   );
 }
