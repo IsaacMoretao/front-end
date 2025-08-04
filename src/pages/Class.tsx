@@ -62,7 +62,9 @@ export function Class({ min, max }: Class) {
     message: "",
   });
 
+  useEffect(() => {
   setSelected([]);
+}, []);
 
   const handleAddPointWithAnimation = async (productId: number) => {
     setIsAnimating(true);
