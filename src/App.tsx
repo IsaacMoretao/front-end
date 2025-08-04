@@ -17,6 +17,7 @@ import { Config } from "./pages/Config";
 import { Admin } from "./pages/Admin";
 import { Relatorio } from "./pages/Relatorio";
 import { Navigation } from "./pages/Navigation";
+import { UserInformation } from "./pages/UserInformation";
 
 function App() {
   const { state, dispatch } = useAuth();
@@ -35,7 +36,6 @@ function App() {
     const token = localStorage.getItem("token");
     const level = localStorage.getItem("level");
     const userId = localStorage.getItem("userId");
-    const aceesAdmin = localStorage.getItem("aceesAdmin");
 
     if (token) {
       dispatch({
@@ -44,7 +44,6 @@ function App() {
           token,
           level: level ?? "",
           userId: userId ?? "",
-          aceesAdmin: aceesAdmin ?? "",
         },
       });
     }
@@ -94,6 +93,7 @@ function App() {
                 path="/config"
                 element={loading ? <Loader /> : <Config />}
               />
+              <Route path="/myself" element={loading ? <Loader /> : <UserInformation />} />
               {state.level === "ADMIN" && (
                 <Route
                   path="/admin"
