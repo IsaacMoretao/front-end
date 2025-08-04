@@ -111,10 +111,11 @@ export function UserInformation() {
             ) : (
               <img
                 src={
-                  newImage.startsWith("http")
+                  newImage.startsWith("http") || newImage.startsWith("data:image/")
                     ? newImage
                     : `${import.meta.env.VITE_BASE_URL}/${newImage}`
                 }
+
                 alt="avatar"
                 className="h-full w-full rounded-full bg-slate-300 object-cover"
               />
