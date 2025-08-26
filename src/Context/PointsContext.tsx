@@ -1,13 +1,14 @@
+// context/PointsProvider.tsx
 import {
   createContext,
   useContext,
   useState,
   ReactNode,
 } from "react";
-import { api } from "../lib/axios";
 import { useAuth } from "./AuthProvider";
-import { useProductContext } from "./DataContext";
-import { ModalResponse } from "../components/ModalResponse";
+import { useAddPoint } from "../http/types/useAddPoint";
+import { useRemovePoint } from "../http/types/useRemovePoint";
+
 
 interface PointsAdded {
   [key: number]: number;
@@ -15,12 +16,15 @@ interface PointsAdded {
 
 interface PointsContextType {
   pointsAdded: PointsAdded;
-  handleAddPoint: (productId: number) => void;
-  handleRemovePoint: (productId: number) => void;
-  loading: { [key: number]: boolean };
+  handleAddPoint: (childId: number) => void;
+  animatePoints: { [key: number]: boolean };
+  handleRemovePoint: (childId: number) => void;
+  setInitialPoints: (initial: PointsAdded) => void;
 }
 
 const PointsContext = createContext<PointsContextType | undefined>(undefined);
+
+
 
 export const usePointsContext = () => {
   const context = useContext(PointsContext);
@@ -30,99 +34,97 @@ export const usePointsContext = () => {
   return context;
 };
 
-interface PointsProviderProps {
-  children: ReactNode;
-}
-
-export const PointsProvider = ({ children }: PointsProviderProps) => {
-  const { state } = useAuth();
-  const [modalOpen, setModalOpen] = useState(false);
-  const [modalData, setModalData] = useState<{ status: "success" | "error"; message: string }>({
-    status: "success",
-    message: "",
-  });
+export const PointsProvider = ({ children }: { children: ReactNode }) => {
+  const { state, dispatch } = useAuth();
+  const addPointMutation = useAddPoint();
+  const removePointMutation = useRemovePoint();
 
   const [pointsAdded, setPointsAdded] = useState<PointsAdded>({});
-  const [loading, setLoading] = useState<{ [key: number]: boolean }>({});
-  const { DataReload } = useProductContext();
+  const [animatePoints, setAnimatePoints] = useState<{ [key: number]: boolean }>({});
 
-
-  const handleAddPoint = async (productId: number) => {
-    try {
-      // Marca o início do carregamento
-      setLoading((prev) => ({ ...prev, [productId]: true }));
-  
-      const response = await api.post(`/addPoint/${productId}/${state.userId}`);
-  
-      if (response.status === 200 || response.status === 201) {
-        // Se a resposta for 200, adicione o ponto
-        setPointsAdded((prevPoints) => {
-          const currentPoints = prevPoints[productId] || 0;
-          if (currentPoints < 4) {
-            return { ...prevPoints, [productId]: currentPoints + 1 };
-
-          }
-          return prevPoints;
-          
-        });
+  const setInitialPoints = (initial: PointsAdded) => {
+    setPointsAdded((prev) => {
+      const merged: PointsAdded = { ...prev };
+      for (const key in initial) {
+        const id = Number(key);
+        if (merged[id] === undefined) {
+          merged[id] = initial[id]; // só seta se ainda não foi definido
+        }
       }
-    } catch (error: any) {
-      console.error("Erro ao adicionar ponto:", error);
-      const errorMessage = error.response?.data?.error || 'Erro desconhecido';
-      setModalData({
-        status: "error",
-        message: `Erro ao Adicionar ponto:  ` + ` ${errorMessage}`,
-      });
-      setModalOpen(true);
-    } finally {
-      DataReload();
-      setLoading((prev) => ({ ...prev, [productId]: false }));
+      return merged;
+    });
+  };
+
+  const handleAddPoint = async (childId: number) => {
+    const userId = Number(state.userId);
+    if (!userId) {
+      console.error("Usuário inválido para retirar ponto.");
+      dispatch({ type: "LOGOUT" });
+      return;
+    }
+
+    const current = pointsAdded[childId] || 0;
+
+    if (current >= 4) return; // respeita o limite de 4
+
+    // ✅ Atualização otimista
+    setPointsAdded((prev) => ({
+      ...prev,
+      [childId]: current + 1,
+    }));
+
+    setAnimatePoints((prev) => ({ ...prev, [childId]: true }));
+    setTimeout(() => {
+      setAnimatePoints((prev) => ({ ...prev, [childId]: false }));
+    }, 800);
+
+    try {
+      const userId = state.userId;
+      if (!userId) {
+        console.error("Usuário inválido para adicionar ponto.");
+        dispatch({ type: "LOGOUT" });
+        return;
+      }
+      await addPointMutation.mutateAsync({ childId, userId });
+    } catch (err) {
+      // ❌ Reverter se a API falhar
+      setPointsAdded((prev) => ({
+        ...prev,
+        [childId]: Math.max((prev[childId] || 1) - 1, 0),
+      }));
+      console.error("Erro ao adicionar ponto:", err);
     }
   };
-  
-  const handleRemovePoint = async (productId: number) => {
+
+
+  const handleRemovePoint = async (childId: number) => {
+    const current = pointsAdded[childId] || 0;
+    if (current <= 0) return;
+
+    // Otimista: decrementa antes da resposta da API
+    setPointsAdded((prev) => ({
+      ...prev,
+      [childId]: Math.max(current - 1, 0),
+    }));
+
     try {
-      const response = await api.delete(`/deletePoint/${productId}`);
-  
-      if (response.status === 200) {
-        setPointsAdded((prevPoints) => {
-          const currentPoints = prevPoints[productId] || 0;
-  
-          // Evita números negativos
-          if (currentPoints > 0) {
-            return {
-              ...prevPoints,
-              [productId]: currentPoints - 1,
-            };
-          }
-  
-          return prevPoints; // Mantém o estado atual se já for 0
-        });
-      }
-    }catch (error: any) {
-      console.error("Erro ao retirar ponto:", error);
-      const errorMessage = error.response?.data?.error || 'Erro desconhecido';
-      setModalData({
-        status: "error",
-        message: `Erro ao retirar ponto:  ` + ` ${errorMessage}`,
-      });
-      setModalOpen(true);
-    } finally {
-      DataReload();
+      await removePointMutation.mutateAsync({ childId });
+    } catch (err) {
+      // Reverte se der erro
+      setPointsAdded((prev) => ({
+        ...prev,
+        [childId]: prev[childId] + 1,
+      }));
+      console.error("Erro ao remover ponto:", err);
     }
   };
-  
+
   return (
     <PointsContext.Provider
-      value={{ pointsAdded, handleAddPoint, handleRemovePoint, loading }}
+      value={{ pointsAdded, handleAddPoint, animatePoints, setInitialPoints, handleRemovePoint }}
     >
       {children}
-      <ModalResponse
-        open={modalOpen}
-        status={modalData.status}
-        response={modalData.message}
-        onClose={() => setModalOpen(false)}
-      />
     </PointsContext.Provider>
   );
 };
+

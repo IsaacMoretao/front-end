@@ -18,9 +18,10 @@ import { Admin } from "./pages/Admin";
 import { Relatorio } from "./pages/Relatorio";
 import { Navigation } from "./pages/Navigation";
 import { UserInformation } from "./pages/UserInformation";
+import { ProductProvider } from "./Context/DataContext";
 
 function App() {
-  const { state, dispatch } = useAuth();
+  const { state } = useAuth();
   const [loading, setLoading] = useState(true);
   const { darkMode } = useTheme();
 
@@ -32,22 +33,22 @@ function App() {
     return () => clearTimeout(timer);
   }, []);
 
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    const level = localStorage.getItem("level");
-    const userId = localStorage.getItem("userId");
+  // useEffect(() => {
+  //   const token = localStorage.getItem("token");
+  //   const level = localStorage.getItem("level");
+  //   const userId = localStorage.getItem("userId");
 
-    if (token) {
-      dispatch({
-        type: "LOGIN",
-        payload: {
-          token,
-          level: level ?? "",
-          userId: userId ?? "",
-        },
-      });
-    }
-  }, []);
+  //   if (token) {
+  //     dispatch({
+  //       type: "LOGIN",
+  //       payload: {
+  //         token,
+  //         level: level ?? "",
+  //         userId: userId ?? "",
+  //       },
+  //     });
+  //   }
+  // }, []);
   return (
     <div className={`${darkMode ? "bg-gray-900" : "bg-gray-100"} font-Poppins`}>
       <>
@@ -76,16 +77,16 @@ function App() {
               <Route path="/galardao" element={loading ? <Loader /> : <Home />} />
               <Route path="/loader" element={<Loader />} />
               <Route
-                path="/sala/9-11"
-                element={loading ? <Loader /> : <Class min={8} max={12} />}
-              />
-              <Route
-                path="/sala/6-8"
-                element={loading ? <Loader /> : <Class min={5} max={9} />}
-              />
-              <Route
-                path="/sala/3-5"
-                element={loading ? <Loader /> : <Class min={2} max={6} />}
+                path="/sala/:salaParams"
+                element={
+                  loading ? (
+                    <Loader />
+                  ) : (
+                    <ProductProvider>
+                      <Class />
+                    </ProductProvider>
+                  )
+                }
               />
 
               <Route path="/" element={loading ? <Loader /> : <Navigation />} />

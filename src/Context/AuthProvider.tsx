@@ -1,27 +1,24 @@
 /* eslint-disable react-refresh/only-export-components */
-import {jwtDecode} from "jwt-decode";
-
+import { jwtDecode } from "jwt-decode";
 import {
   createContext,
   useContext,
   useReducer,
   ReactNode,
   Dispatch,
+  useEffect,
 } from "react";
 
-// Defina os tipos de ações possíveis
 type AuthAction =
-  | { type: "LOGIN"; payload: { token: string; level: string; userId: string } }
+  | { type: "LOGIN"; payload: { token: string } }
   | { type: "LOGOUT" };
 
-// Defina o tipo para o estado de autenticação
 interface AuthState {
   token: string | null;
   level: string | null;
   userId: string | null;
 }
 
-// Crie o contexto de autenticação
 interface AuthContextType {
   state: AuthState;
   dispatch: Dispatch<AuthAction>;
@@ -29,56 +26,86 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Defina o provedor de autenticação
 interface AuthProviderProps {
   children: ReactNode;
 }
 
-// Função para carregar o estado inicial do localStorage
-function loadInitialState(): AuthState {
-  return {
-    token: localStorage.getItem("token") || null,
-    level: localStorage.getItem("level") || null,
-    userId: localStorage.getItem("userId") || null,
-  };
+type JwtPayload = {
+  userId?: string;
+  level?: string;
+  exp?: number; // segs desde epoch
+};
+
+function decodeAndValidate(token: string) {
+  try {
+    const decoded = jwtDecode<JwtPayload>(token);
+    if (!decoded?.exp || !decoded.userId || !decoded.level) return null;
+
+    const now = Math.floor(Date.now() / 1000);
+    if (decoded.exp <= now) return null;
+
+    return { userId: decoded.userId, level: decoded.level, exp: decoded.exp };
+  } catch {
+    return null;
+  }
 }
 
-type JwtPayload = {
-  userId: string;
-  level: string;
-  exp: number;
-  iat: number;
-};
+function clearToken() {
+  localStorage.removeItem("token");
+}
+
+function persistToken(token: string) {
+  localStorage.setItem("token", token);
+}
+
+/** Inicializa já derivando dados do token */
+function loadInitialState(): AuthState {
+  const token = localStorage.getItem("token");
+  if (!token) return { token: null, level: null, userId: null };
+
+  const info = decodeAndValidate(token);
+  if (!info) {
+    clearToken();
+    return { token: null, level: null, userId: null };
+  }
+
+  return { token, level: info.level, userId: info.userId };
+}
 
 function authReducer(state: AuthState, action: AuthAction): AuthState {
   switch (action.type) {
-    case "LOGIN":
-      const decoded: JwtPayload = jwtDecode(action.payload.token);
+    case "LOGIN": {
+      const { token } = action.payload;
+      const info = decodeAndValidate(token);
 
-      localStorage.setItem("token", action.payload.token);
-      localStorage.setItem("level", decoded.level);
-      localStorage.setItem("userId", decoded.userId);
+      if (!info) {
+        clearToken();
+        return { token: null, level: null, userId: null };
+      }
 
-      return {
-        token: action.payload.token,
-        level: decoded.level,
-        userId: decoded.userId,
-      };
-    case "LOGOUT":
-      localStorage.removeItem("token");
-      localStorage.removeItem("level");
-      localStorage.removeItem("userId");
+      persistToken(token);
+      return { token, level: info.level, userId: info.userId };
+    }
+
+    case "LOGOUT": {
+      clearToken();
       return { token: null, level: null, userId: null };
+    }
+
     default:
       return state;
   }
 }
 
-
 export function AuthProvider({ children }: AuthProviderProps) {
-  const [state, dispatch] = useReducer(authReducer, loadInitialState());
+  const [state, dispatch] = useReducer(authReducer, undefined!, loadInitialState);
 
-  console.log("Initial auth state from localStorage:", state);
+  // revalida ao montar (protege contra tokens expirados entre sessões)
+  useEffect(() => {
+    if (!state.token) return;
+    const info = decodeAndValidate(state.token);
+    if (!info) dispatch({ type: "LOGOUT" });
+  }, []); // monta uma vez
 
   return (
     <AuthContext.Provider value={{ state, dispatch }}>
