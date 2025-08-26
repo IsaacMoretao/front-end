@@ -64,7 +64,7 @@ export function Table({
   const [page, setPage] = useState(0);
 
   const [searchNome, setSearchNome] = useState("");
-  const { pointsAdded, handleAddPoint, handleRemovePoint, loading } = usePointsContext();
+  const { pointsAdded, handleAddPoint, handleRemovePoint } = usePointsContext();
   const [selectAll, setSelectAll] = useState(false);
   const { darkMode } = useTheme();
   const [isPopupOpen, setIsPopupOpen] = useState(false);
@@ -275,11 +275,11 @@ export function Table({
                                   key={`${product.id}-${index}`}
                                   className="ml-1 bg-blue-500 text-white px-2 py-1 rounded-full transition-all duration-300"
                                 >
-                                  {loading[product.id] ? (
+                                  {/* {loading[product.id] ? (
                                     <span>...</span> // Ou use um ícone de carregamento, como o de "spinner"
                                   ) : (
                                     "+1"
-                                  )}
+                                  )} */}
                                 </span>
                               )
                             )}

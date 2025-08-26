@@ -71,9 +71,7 @@ export function Login() {
       dispatch({
         type: "LOGIN",
         payload: {
-          token,
-          level,
-          userId: stringUserId,
+          token
         },
       });
   
