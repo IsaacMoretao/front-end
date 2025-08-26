@@ -45,7 +45,6 @@ export function Class() {
     product.nome?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-
   return (
     <>
      {/* Este é para versão desktop */}
