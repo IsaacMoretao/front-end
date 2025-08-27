@@ -26,6 +26,8 @@ interface ProductContextType {
   loadMore: () => Promise<void>;
   hasNextPage: boolean;
   loading: boolean;
+  searchTerm: string;
+  setSearchTerm: (value: string) => void;
 }
 
 const ProductContext = createContext<ProductContextType | undefined>(undefined);
@@ -67,6 +69,7 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [take] = useState<number>(10);
   const [hasNextPage, setHasNextPage] = useState<boolean>(true);
   const [loading, setLoading] = useState<boolean>(false);
+  const [searchTerm, setSearchTerm] = useState<string>("");
 
   // (opcional) trava anti-duplicidade de chamadas
   const inFlight = useRef(false);
@@ -83,7 +86,12 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
         setLoading(true);
         console.log("salaParams =>", salaParams);
         const response = await api.get<ApiResponse>("/children/filterByAge", {
-          params: { minAge: min, maxAge: max, skip: effectiveSkip, take },
+          params: {
+            minAge: min,
+            maxAge: max,
+            skip: effectiveSkip,
+            take, ...(searchTerm && { search: searchTerm }),
+          },
         });
 
         const { data: productsArray, hasNextPage: hasNext, currentSkip } = response.data;
@@ -92,11 +100,14 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
           throw new Error("A propriedade 'data' não é um array");
         }
 
-        setProducts((prev) => (isReload ? productsArray : [...prev, ...productsArray]));
-        // atualiza o skip baseado no que foi realmente usado
+        const isSearching = searchTerm.trim().length > 0;
+
+        setProducts((prev) => (isReload || isSearching ? productsArray : [...prev, ...productsArray]));
+
         const nextSkip = (typeof currentSkip === "number" ? currentSkip : effectiveSkip) + take;
-        setSkip(nextSkip);
-        setHasNextPage(Boolean(hasNext));
+        setSkip(isSearching ? 0 : nextSkip);
+        setHasNextPage(isSearching ? false : Boolean(hasNext));
+
       } catch (err) {
         console.error("Erro ao buscar produtos:", err);
         if (isReload) {
@@ -109,7 +120,7 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
         inFlight.current = false;
       }
     },
-    [skip, take, min, max, loading]
+    [skip, take, min, max, loading, searchTerm]
   );
 
   // 🔄 Recarrega quando min/max mudarem e também no primeiro mount
@@ -141,6 +152,8 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
         loadMore,
         hasNextPage,
         loading,
+        searchTerm,
+        setSearchTerm
       }}
     >
       {children}

@@ -1,8 +1,8 @@
 // Class.tsx (corrigido com paginação backend)
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { api } from "../lib/axios";
-import {TextField } from "@mui/material";
+import { TextField } from "@mui/material";
 import InfiniteScroll from "react-infinite-scroll-component";
 import { useTheme } from "../Context/ThemeContext";
 import { useAuth } from "../Context/AuthProvider";
@@ -13,12 +13,11 @@ import { MobilleCard } from "../components/CardsChild/mibille";
 
 
 export function Class() {
-  const { products, loadMore, hasNextPage, DataReload } = useProductContext();
+  const { products, loadMore, hasNextPage, DataReload, searchTerm, setSearchTerm } = useProductContext();
   const { darkMode } = useTheme();
   const { state } = useAuth();
 
 
-  const [searchTerm, setSearchTerm] = useState<string>("");
   const [modalOpen, setModalOpen] = useState(false);
   const [modalData, setModalData] = useState<{ status: "success" | "error"; message: string }>({
     status: "success",
@@ -41,13 +40,21 @@ export function Class() {
     }
   };
 
-  const filteredProducts = products.filter((product) =>
-    product.nome?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
+  };
+
+  useEffect(() => {
+    const delayDebounce = setTimeout(() => {
+      DataReload();
+    }, 400); // debounce opcional
+
+    return () => clearTimeout(delayDebounce);
+  }, [searchTerm]);
 
   return (
     <>
-     {/* Este é para versão desktop */}
+      {/* Este é para versão desktop */}
       <main className={`p-16 lg:ml-16 min-h-[95vh] hidden shadow-md ${darkMode ? "bg-gray-900" : "bg-gray-100"}`}>
         <div className={`rounded-2xl h-full p-5 ${darkMode ? "bg-gray-800" : "bg-white"}`}>
           <header>
@@ -66,10 +73,10 @@ export function Class() {
       <div className={` min-h-[100vh] p-5 ${darkMode ? "bg-gray-900" : "bg-gray-100"}`}>
         <TextField
           id="search"
-          label="Search"
+          label="Buscar pelo nome"
           variant="outlined"
           fullWidth
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={handleSearchChange}
           value={searchTerm}
           className="mb-4"
           InputProps={{ style: { color: darkMode ? "#f5f5f5" : "#1a1a1a" } }}
@@ -83,20 +90,21 @@ export function Class() {
           }}
         />
         <InfiniteScroll
-          dataLength={filteredProducts.length}
+          dataLength={products.length}
           next={loadMore}
           hasMore={!!hasNextPage}
           loader={<h4>Loading...</h4>}
           scrollThreshold={0.9}
         >
-          {filteredProducts.map((product) => (
+          {products.map((product) => (
             <MobilleCard
               key={product.id}
               product={product}
               darkMode={darkMode}
               stateLevel={state.level ?? ""}
               onDelete={handleDelete}
-              userId={Number(state.userId)}/>
+              userId={Number(state.userId)}
+            />
           ))}
         </InfiniteScroll>
       </div>
