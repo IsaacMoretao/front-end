@@ -39,7 +39,7 @@ export function Header() {
   const [currentProduct, setCurrentProduct] = useState<Product | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [preview, setPreview] = useState<string | null>(null);
-
+  const [loading, setLoading] = useState(false)
 
 
   const location = useLocation();
@@ -118,6 +118,8 @@ export function Header() {
     if (!currentProduct) return;
 
     try {
+      setLoading(true)
+      console.log(`Loading: ${loading}`)
       const pointsArray: Point[] = Array.isArray(currentProduct.points)
         ? currentProduct.points
         : [];
@@ -159,8 +161,12 @@ export function Header() {
       }
 
       handleClose();
+      setLoading(false)
+      console.log(`Loading: ${loading}`)
     } catch (error) {
       console.error("Erro ao salvar criança:", error);
+      setLoading(false)
+      console.log(`Loading: ${loading}`)
     }
   };
 
@@ -354,14 +360,27 @@ export function Header() {
                 value={currentProduct.points ? currentProduct.points.length : 0}
                 onChange={handlePointsChange}
               />
-              <Button
-                type="submit"
-                variant="contained"
-                color="primary"
-                sx={{ mt: 2 }}
-              >
-                Salvar
-              </Button>
+              {loading ? (
+                <Button
+                  variant="contained"
+                  color="inherit"
+                  sx={{ mt: 2 }}
+                >
+                  Salvando...
+                </Button>
+
+              ) : (
+                
+                <Button
+                  type="submit"
+                  variant="contained"
+                  color="primary"
+                  sx={{ mt: 2 }}
+                >
+                  Salvar
+                </Button>
+              )}
+
             </Box>
           )}
         </Box>

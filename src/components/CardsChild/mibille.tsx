@@ -1,7 +1,7 @@
 // MobilleCard.tsx
 import { useEffect, useState, useMemo } from "react";
 import { PopupDetails } from "../PopupDetails";
-import { IconButton, Modal, Box, Typography, TextField, Button, Stack } from "@mui/material";
+import { IconButton, Modal, Box, Typography, TextField, Button, Stack, Backdrop } from "@mui/material";
 import { DotsThreeVertical } from "phosphor-react";
 import { usePointsContext } from "../../Context/PointsContext";
 import { InfoPointsModal } from "../InfoPointsModal";
@@ -45,6 +45,8 @@ export function MobilleCard({
     const { handleAddPoint, pointsAdded, animatePoints, handleRemovePoint } = usePointsContext();
     const addedPoints = pointsAdded[product.id] || 0;
 
+    console.log(`pontos adicionados: ${addedPoints}`)
+
     const toggleMenu = () => setMenuVisible(!menuVisible);
     // const handlePopupOpen = () => setIsPopupOpen(true);
     const handlePopupClose = () => setIsPopupOpen(false);
@@ -56,6 +58,7 @@ export function MobilleCard({
     const [formPoints, setFormPoints] = useState<number>(product.points || 0);
     const [saving, setSaving] = useState(false);
     const [saveError, setSaveError] = useState<string | null>(null);
+    const [openAvatar, setOpenAvatar] = useState(false);
 
     const tfSx: SxProps<Theme> = darkMode
         ? {
@@ -235,18 +238,42 @@ export function MobilleCard({
             </Modal>
             {/* --------- Fim Modal de Edição --------- */}
 
+            <Backdrop
+                open={openAvatar}
+                onClick={() => setOpenAvatar(false)}
+                sx={{
+                    zIndex: 10,
+                    backdropFilter: "blur(3px)",
+                    backgroundColor: "transparent",
+                }}
+            >
+                <Box
+                    component="img"
+                    src={`${product.avatar}`}
+                    alt="avatar enlarged"
+                    sx={{
+                        maxHeight: "80vh",
+                        maxWidth: "80vw",
+                        borderRadius: 2,
+                    }}
+                />
+            </Backdrop>
+
             <section
                 className={`lg:hidden flex p-4 rounded-lg shadow-md relative my-5 ${darkMode ? "bg-gray-800 text-gray-100" : "bg-white text-gray-900"
                     }`}
             >
-                <img
-                    className="w-36 h-36 rounded-full object-cover mr-5"
-                    src={`${product.avatar}`}
-                    alt={product.nome}
-                />
+
                 <div className="flex flex-col w-full">
 
                     <header className="flex justify-between items-center mb-2">
+
+                        <img
+                            className="w-12 h-12 rounded-full object-cover mr-5"
+                            src={`${product.avatar}`}
+                            alt={product.nome}
+                            onClick={() => setOpenAvatar(true)}
+                        />
 
                         <h2 className="font-semibold text-sm truncate whitespace-nowrap max-w-[70%] overflow-hidden">
                             {product.nome}

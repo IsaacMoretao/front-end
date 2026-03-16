@@ -1,6 +1,5 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import { Login } from "./pages/Login";
-import { Home } from "./pages/Home";
 import { Class } from "./pages/Class";
 
 import { useTheme } from "./Context/ThemeContext";
@@ -33,22 +32,6 @@ function App() {
     return () => clearTimeout(timer);
   }, []);
 
-  // useEffect(() => {
-  //   const token = localStorage.getItem("token");
-  //   const level = localStorage.getItem("level");
-  //   const userId = localStorage.getItem("userId");
-
-  //   if (token) {
-  //     dispatch({
-  //       type: "LOGIN",
-  //       payload: {
-  //         token,
-  //         level: level ?? "",
-  //         userId: userId ?? "",
-  //       },
-  //     });
-  //   }
-  // }, []);
   return (
     <div className={`${darkMode ? "bg-gray-900" : "bg-gray-100"} font-Poppins`}>
       <>
@@ -74,10 +57,10 @@ function App() {
           ) : (
             <>
               {/* Rotas acessíveis com token */}
-              <Route path="/galardao" element={loading ? <Loader /> : <Home />} />
+              {/* <Route path="/galardao" element={loading ? <Loader /> : <Home />} /> */}
               <Route path="/loader" element={<Loader />} />
               <Route
-                path="/sala/:salaParams"
+                path="/galardao"
                 element={
                   loading ? (
                     <Loader />

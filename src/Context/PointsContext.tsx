@@ -43,16 +43,10 @@ export const PointsProvider = ({ children }: { children: ReactNode }) => {
   const [animatePoints, setAnimatePoints] = useState<{ [key: number]: boolean }>({});
 
   const setInitialPoints = (initial: PointsAdded) => {
-    setPointsAdded((prev) => {
-      const merged: PointsAdded = { ...prev };
-      for (const key in initial) {
-        const id = Number(key);
-        if (merged[id] === undefined) {
-          merged[id] = initial[id]; // só seta se ainda não foi definido
-        }
-      }
-      return merged;
-    });
+    setPointsAdded((prev) => ({
+      ...prev,
+      ...initial
+    }));
   };
 
   const handleAddPoint = async (childId: number) => {
