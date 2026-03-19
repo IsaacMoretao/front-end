@@ -248,7 +248,7 @@ export function Header() {
 
             <p className={"mt-2 text-gray-100"}>{title}</p>
           </Typography>
-          {path.startsWith("/sala") && (
+          {path.startsWith("/galardao") && (
             <div className="flex items-center">
               <button
                 onClick={handleCreate}
