@@ -258,7 +258,7 @@ export function Header() {
               </button>
             </div>
           )}
-          {!path.endsWith("/myself") && !path.startsWith("/sala") && (
+          {!path.endsWith("/myself") && !path.startsWith("/galardao") && (
             <Link to="/myself">
               <UserCircle size={36} color="#fff" weight="duotone" />
             </Link>
