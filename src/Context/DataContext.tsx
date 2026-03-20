@@ -8,6 +8,10 @@ import {
 } from "react";
 import { api } from "../lib/axios";
 
+interface Point {
+    id: number;
+}
+
 interface Product {
   id: number;
   nome: string;
@@ -16,7 +20,7 @@ interface Product {
   pontos: number;
   pointsAdded: number;
   dateOfBirth: string;
-  points: number;
+  points: Point[];
 }
 
 interface ApiResponse {

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   TextField,
   Button,
@@ -43,6 +43,10 @@ export function Login() {
       setIsLoading(false);
     }
   };
+
+    useEffect(() => {
+      verifyServer();
+    }, []);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -101,7 +105,7 @@ export function Login() {
                   color={server === true ? "#2cb438" : "#e46962"}
                 />
                 {server === true ? (
-                  <p className="text-green-500">Servidor OK</p>
+                  <p className="text-green-500">Servidor Saudável</p>
                 ) : (
                   <p className="text-red-500">Servidor com problema</p>
                 )}
@@ -127,7 +131,7 @@ export function Login() {
         </Grid>
         <Grid item xs={12} sm={6} md={4}>
           <Paper elevation={3} style={{ padding: "20px" }}>
-            {error && <p>{error}</p>}
+            {error && <p className="font-bold text-red-600">{error}</p>}
             <form onSubmit={handleSubmit} style={{ width: "100%" }}>
               <TextField
                 type="text"

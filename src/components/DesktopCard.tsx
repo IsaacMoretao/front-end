@@ -16,15 +16,19 @@ import { InfoPointsModal } from "./InfoPointsModal";
 // import { SxProps, Theme } from "@mui/material/styles";
 import { useUpdateChild } from "../http/types/useUpdateChild";
 
+interface Point {
+    id: number;
+}
+
 interface Product {
-  id: number;
-  nome: string;
-  avatar: string;
-  idade?: string;
-  pontos?: number;
-  pointsAdded: number;
-  dateOfBirth?: string;
-  points: number;
+    id: number;
+    nome: string;
+    avatar: string;
+    idade?: string;
+    pontos?: number;
+    pointsAdded: number;
+    dateOfBirth?: string;
+    points: Point[];
 }
 
 interface DesktopCardProps {
@@ -48,7 +52,7 @@ export function DesktopCard({
   const [openAvatar, setOpenAvatar] = useState(false);
   const [infoChartOpen, setInfoChartOpen] = useState(false);
 
-  const { setInitialPoints, handleAddPoint, handleRemovePoint, pointsAdded } =
+  const { setInitialPoints, handleAddPoint, animatePoints, handleRemovePoint, pointsAdded } =
     usePointsContext();
 
   // const addedPoints = pointsAdded[product.id] || 0;
@@ -60,27 +64,41 @@ export function DesktopCard({
   const [editOpen, setEditOpen] = useState(false);
   const [formNome, setFormNome] = useState(product.nome || "");
   const [formDate, setFormDate] = useState<string>("");
-  const [formPoints, setFormPoints] = useState<number>(product.points || 0);
+  const [formPoints, setFormPoints] = useState<number>(product.points.length || 0);
   const [saving, setSaving] = useState(false);
 
-  const normalizeDateForInput = (d?: string) => {
-    if (!d) return "";
-    const dt = new Date(d);
-    if (!isNaN(dt.getTime())) {
-      const y = dt.getFullYear();
-      const m = String(dt.getMonth() + 1).padStart(2, "0");
-      const day = String(dt.getDate()).padStart(2, "0");
-      return `${y}-${m}-${day}`;
-    }
-    return "";
-  };
+    const normalizeDateForInput = (d?: string) => {
+        if (!d) return "";
+    
+        d = d.trim();
+    
+        if (/^\d{4}-\d{2}-\d{2}$/.test(d)) return d;
+    
+        if (/^\d{2}\/\d{2}\/\d{4}$/.test(d)) {
+            const [day, month, year] = d.split("/");
+            return `${year}-${month}-${day}`;
+        }
+    
+        const dt = new Date(d);
+        if (!isNaN(dt.getTime())) {
+            const y = dt.getFullYear();
+            const m = String(dt.getMonth() + 1).padStart(2, "0");
+            const day = String(dt.getDate()).padStart(2, "0");
+            return `${y}-${m}-${day}`;
+        }
+    
+        return "";
+    };
 
   const openEdit = () => {
     setFormNome(product.nome || "");
     setFormDate(normalizeDateForInput(product.dateOfBirth));
-    setFormPoints(product.points);
+    setFormPoints(typeof product.points === "number" ? product.points : 0);
     setEditOpen(true);
   };
+  const iconColor = darkMode ? "#f5f5f5" : "#1f2937";
+
+  const addedPoints = pointsAdded[product.id] || 0;
 
   const handleSave = async () => {
     setSaving(true);
@@ -93,22 +111,26 @@ export function DesktopCard({
       userId: Number(userId),
     });
 
-    onUpdated?.({
-      ...product,
-      nome: formNome,
-      dateOfBirth: formDate,
-      points: Number(formPoints),
-    });
+    onUpdated?.({ ...product, nome: formNome, dateOfBirth: formDate, points: Number(formPoints) } as any)
 
     setSaving(false);
     setEditOpen(false);
   };
 
-  useEffect(() => {
-    if (pointsAdded[product.id] === undefined) {
-      setInitialPoints({ [product.id]: product.points || 0 });
-    }
-  }, [product, pointsAdded, setInitialPoints]);
+    useEffect(() => {
+        if (!product) return;
+
+        if (pointsAdded[product.id] === undefined) {
+            const initial =
+                typeof product.pointsAdded === "number"
+                    ? product.pointsAdded
+                    : typeof product.points === "number"
+                        ? product.points
+                        : 0;
+
+            setInitialPoints({ [product.id]: initial });
+        }
+    }, [product.id, product.pointsAdded, product.points, pointsAdded, setInitialPoints]);
 
   const modalSx = useMemo(
     () => ({
@@ -181,91 +203,109 @@ export function DesktopCard({
 
       {/* Card Desktop */}
       <section
-        className={`hidden lg:flex items-center justify-between p-4 rounded-xl shadow-md my-3 ${
+        className={`hidden lg:block  p-4 rounded-xl shadow-md my-3 ${
           darkMode
             ? "bg-gray-800 text-gray-100"
             : "bg-white text-gray-900"
         }`}
       >
-        {/* esquerda */}
-        <div className="flex items-center gap-4 w-1/3">
-          <img
-            src={product.avatar}
-            onClick={() => setOpenAvatar(true)}
-            className="w-16 h-16 rounded-full object-cover cursor-pointer"
-          />
+        <main className="flex items-center justify-between w-full">
+          <div className="flex items-center gap-4 w-1/3">
+            <img
+              src={product.avatar}
+              onClick={() => setOpenAvatar(true)}
+              className="w-16 h-16 rounded-full object-cover cursor-pointer"
+            />
 
-          <div>
-            <h2 className="font-semibold text-lg">{product.nome}</h2>
-            <span className="text-sm opacity-70">
-              {product.idade} anos
-            </span>
-          </div>
-        </div>
-
-        {/* pontos */}
-        <div className="flex items-center gap-6">
-          <span className="font-medium text-lg">
-            Pontos: {product.points}
-          </span>
-
-          <button
-            className="bg-blue-500 text-white px-3 py-1 rounded hover:scale-105"
-            onClick={() => handleAddPoint(product.id)}
-            disabled={pointsAdded[product.id] >= 4}
-          >
-            +1
-          </button>
-
-          <button
-            className="bg-red-500 text-white px-3 py-1 rounded hover:scale-105"
-            onClick={() => handleRemovePoint(product.id)}
-            disabled={pointsAdded[product.id] === 0}
-          >
-            -1
-          </button>
-        </div>
-
-        {/* ações */}
-        <div className="relative">
-          <IconButton onClick={toggleMenu}>
-            <DotsThreeVertical size={20} weight="bold" />
-          </IconButton>
-
-          {menuVisible && (
-            <div className="absolute right-0 mt-2 w-36 bg-white border rounded-md shadow-lg z-10">
-              <button
-                onClick={() => {
-                  openEdit();
-                  setMenuVisible(false);
-                }}
-                className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-              >
-                Editar
-              </button>
-
-              <button
-                onClick={() => {
-                  onDelete([product.id]);
-                  setMenuVisible(false);
-                }}
-                className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-              >
-                Excluir
-              </button>
-
-              <button
-                onClick={() => {
-                  setInfoChartOpen(true);
-                  setMenuVisible(false);
-                }}
-                className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-              >
-                Info
-              </button>
+            <div>
+              <h2 className="font-semibold text-lg">{product.nome}</h2>
+              <span className="text-sm opacity-70">
+                {product.idade} anos
+              </span>
             </div>
-          )}
+          </div>
+
+          <div className="flex items-center gap-6">
+            <span className="font-medium text-lg">
+              {`Pontos: ${product.points}`}
+            </span>
+
+            <button
+              className="bg-blue-500 text-white px-3 py-1 rounded hover:scale-105"
+              onClick={() => handleAddPoint(product.id)}
+              disabled={pointsAdded[product.id] >= 4}
+            >
+              +1
+            </button>
+
+            <button
+              className="bg-red-500 text-white px-3 py-1 rounded hover:scale-105"
+              onClick={() => handleRemovePoint(product.id)}
+              disabled={pointsAdded[product.id] === 0}
+            >
+              -1
+            </button>
+          </div>
+
+          <div className="relative">
+            <IconButton onClick={toggleMenu}>
+              <DotsThreeVertical
+                size={20}
+                weight="bold"
+                color={iconColor} 
+              />
+            </IconButton>
+
+            {menuVisible && (
+              <div className={`absolute right-0 mt-2 w-36 ${darkMode ? "bg-gray-800 text-gray-100" : "bg-white text-gray-900"} border rounded-md shadow-lg z-10`}>
+                <button
+                  onClick={() => {
+                    openEdit();
+                    setMenuVisible(false);
+                  }}
+                  className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                >
+                  Editar
+                </button>
+
+                <button
+                  onClick={() => {
+                    onDelete([product.id]);
+                    setMenuVisible(false);
+                  }}
+                  className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                >
+                  Excluir
+                </button>
+
+                <button
+                  onClick={() => {
+                    setInfoChartOpen(true);
+                    setMenuVisible(false);
+                  }}
+                  className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                >
+                  Info
+                </button>
+              </div>
+            )}
+          </div>
+        </main>
+        <footer>
+          <div className="p-3">
+            <div className="flex mt-2">
+                {Array.from({ length: addedPoints }).map((_, index) => (
+                    <span
+                        key={index}
+                        className={`ml-1 bg-green-500 text-white px-2 py-1 rounded-full transition-all duration-700 ease-in-out transform ${animatePoints[product.id] ? "animate-pulse scale-105" : ""
+                            }`}
+                    >
+                        +1
+                    </span>
+                ))}
+            </div>
         </div>
+        </footer>
       </section>
 
       <InfoPointsModal

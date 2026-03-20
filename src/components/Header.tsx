@@ -264,7 +264,6 @@ export function Header() {
             </Link>
           )}
 
-
         </Toolbar>
       </header>
       <Modal

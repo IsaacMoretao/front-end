@@ -8,6 +8,10 @@ import { InfoPointsModal } from "../InfoPointsModal";
 import { SxProps, Theme } from '@mui/material/styles';
 import { useUpdateChild } from '../../http/types/useUpdateChild'
 
+interface Point {
+    id: number;
+}
+
 interface Product {
     id: number;
     nome: string;
@@ -16,7 +20,7 @@ interface Product {
     pontos?: number;
     pointsAdded: number;
     dateOfBirth?: string;
-    points: number;
+    points: Point[];
 }
 
 interface MobilleCardProps {
@@ -45,17 +49,15 @@ export function MobilleCard({
     const { handleAddPoint, pointsAdded, animatePoints, handleRemovePoint } = usePointsContext();
     const addedPoints = pointsAdded[product.id] || 0;
 
-    console.log(`pontos adicionados: ${addedPoints}`)
+    const iconColor = darkMode ? "#f5f5f5" : "#1f2937";
 
     const toggleMenu = () => setMenuVisible(!menuVisible);
-    // const handlePopupOpen = () => setIsPopupOpen(true);
     const handlePopupClose = () => setIsPopupOpen(false);
 
-    // ---------- NOVO: estado do modal de edição ----------
     const [editOpen, setEditOpen] = useState(false);
     const [formNome, setFormNome] = useState(product.nome || "");
     const [formDate, setFormDate] = useState<string>("");
-    const [formPoints, setFormPoints] = useState<number>(product.points || 0);
+    const [formPoints, setFormPoints] = useState<number>(product.points.length || 0);
     const [saving, setSaving] = useState(false);
     const [saveError, setSaveError] = useState<string | null>(null);
     const [openAvatar, setOpenAvatar] = useState(false);
@@ -79,23 +81,29 @@ export function MobilleCard({
         ? { backgroundColor: "#3b82f6", "&:hover": { backgroundColor: "#2563eb" } }
         : {}
 
-    // helper para normalizar a data no formato YYYY-MM-DD para o input type=date
     const normalizeDateForInput = (d?: string) => {
         if (!d) return "";
+    
+        d = d.trim();
+    
+        if (/^\d{4}-\d{2}-\d{2}$/.test(d)) return d;
+    
+        if (/^\d{2}\/\d{2}\/\d{4}$/.test(d)) {
+            const [day, month, year] = d.split("/");
+            return `${year}-${month}-${day}`;
+        }
+    
         const dt = new Date(d);
-        // protege contra "Invalid Date" se já vier como YYYY-MM-DD
         if (!isNaN(dt.getTime())) {
             const y = dt.getFullYear();
             const m = String(dt.getMonth() + 1).padStart(2, "0");
             const day = String(dt.getDate()).padStart(2, "0");
             return `${y}-${m}-${day}`;
         }
-        // se já estiver no formato correto, mantém
-        if (/^\d{4}-\d{2}-\d{2}$/.test(d)) return d;
+    
         return "";
     };
 
-    // abre o modal populando o formulário com os dados atuais
     const openEdit = () => {
         setFormNome(product.nome || "");
         setFormDate(normalizeDateForInput(product.dateOfBirth));
@@ -110,9 +118,9 @@ export function MobilleCard({
 
     const { mutateAsync: updateChild } = useUpdateChild()
 
-    // salva no backend
     const handleSave = async () => {
-        try {
+        console.log("product.dateOfBirth:", product.dateOfBirth);
+        try {          
             setSaving(true)
             setSaveError(null)
             await updateChild({
@@ -123,7 +131,6 @@ export function MobilleCard({
                 userId: Number(userId)
             })
 
-            // opcional: se você passar onUpdated no pai, pode continuar chamando
             onUpdated?.({ ...product, nome: formNome, dateOfBirth: formDate, points: Number(formPoints) } as any)
 
             setEditOpen(false)
@@ -131,6 +138,7 @@ export function MobilleCard({
             setSaveError(e?.message || 'Erro ao salvar.')
         } finally {
             setEditOpen(false)
+            setSaving(false)
         }
     }
     // ---------- FIM NOVO ----------
@@ -150,7 +158,6 @@ export function MobilleCard({
         }
     }, [product.id, product.pointsAdded, product.points, pointsAdded, setInitialPoints]);
 
-    // estilos do modal
     const modalSx = useMemo(
         () => ({
             position: "absolute" as const,
@@ -200,7 +207,7 @@ export function MobilleCard({
                             label="Data de Nascimento"
                             fullWidth
                             type="date"
-                            value={formDate}
+                            value={formDate || ""}
                             onChange={(e) => setFormDate(e.target.value)}
                             sx={tfSx}
                             InputLabelProps={{ shrink: true, sx: { color: darkMode ? "#d1d5db" : undefined } }}
@@ -287,7 +294,7 @@ export function MobilleCard({
                                     <DotsThreeVertical
                                         size={20}
                                         weight="bold"
-                                        color={darkMode ? "#f5f5f5" : "#1f2937"} // #f5f5f5 ~ gray-100, #1f2937 ~ gray-800
+                                        color={iconColor} 
                                     />
                                 </IconButton>
                                 {menuVisible && (

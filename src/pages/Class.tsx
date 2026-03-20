@@ -111,13 +111,32 @@ export function Class() {
           }}
         />
 
-        <div className="flex lg:ml-16 gap-3 mb-4 mt-3">
+        <div className="flex  gap-3 mb-4 mt-3">
           <TextField
             label="Idade mínima"
             type="number"
             value={minAge}
             onChange={(e) => setMinAge(Number(e.target.value))}
             size="small"
+                      InputProps={{
+            style: { color: darkMode ? "#f5f5f5" : "#1a1a1a" },
+          }}
+          InputLabelProps={{
+            style: { color: darkMode ? "#f5f5f5" : "#1a1a1a" },
+          }}
+          sx={{
+            "& .MuiOutlinedInput-root": {
+              "& fieldset": {
+                borderColor: darkMode ? "#f5f5f5" : "#1a1a1a",
+              },
+              "&:hover fieldset": {
+                borderColor: darkMode ? "#ffffff" : "#000000",
+              },
+              "&.Mui-focused fieldset": {
+                borderColor: darkMode ? "#ffffff" : "#000000",
+              },
+            },
+          }}
           />
 
           <TextField
@@ -126,6 +145,25 @@ export function Class() {
             value={maxAge}
             onChange={(e) => setMaxAge(Number(e.target.value))}
             size="small"
+                      InputProps={{
+            style: { color: darkMode ? "#f5f5f5" : "#1a1a1a" },
+          }}
+          InputLabelProps={{
+            style: { color: darkMode ? "#f5f5f5" : "#1a1a1a" },
+          }}
+          sx={{
+            "& .MuiOutlinedInput-root": {
+              "& fieldset": {
+                borderColor: darkMode ? "#f5f5f5" : "#1a1a1a",
+              },
+              "&:hover fieldset": {
+                borderColor: darkMode ? "#ffffff" : "#000000",
+              },
+              "&.Mui-focused fieldset": {
+                borderColor: darkMode ? "#ffffff" : "#000000",
+              },
+            },
+          }}
           />
         </div>
       </div>
