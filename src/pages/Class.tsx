@@ -55,7 +55,7 @@ export function Class() {
   return (
     <>
       {/* Este é para versão desktop */}
-      <main className={`p-16 lg:ml-16 min-h-[95vh] hidden shadow-md ${darkMode ? "bg-gray-900" : "bg-gray-100"}`}>
+      <main className={`p-16 lg:ml-16  min-h-[95vh] hidden shadow-md ${darkMode ? "bg-gray-900" : "bg-gray-100"}`}>
         <div className={`rounded-2xl h-full p-5 ${darkMode ? "bg-gray-800" : "bg-white"}`}>
           <header>
 
@@ -70,7 +70,7 @@ export function Class() {
         </div>
       </main>
 
-      <div className={` min-h-[100vh] p-5 ${darkMode ? "bg-gray-900" : "bg-gray-100"}`}>
+      <div className={` min-h-[100vh] p-5 max-md:p-2 ${darkMode ? "bg-gray-900" : "bg-gray-100"}`}>
         <TextField
           id="search"
           label="Buscar pelo nome"
