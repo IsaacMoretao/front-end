@@ -41,13 +41,28 @@ export function Config() {
 
     if (confirmReset) {
       try {
-        const response = await api.post("/reset/all/points");
+        const response = await api.delete("/reset/all/points");
         console.log(response.data.message);
       } catch (error) {
         console.error("Erro ao zerar os pontos:", error);
       }
     } else {
       console.log("Ação de resetar pontos foi cancelada.");
+    }
+  }
+
+    async function resetChild() {
+    const confirmReset = window.confirm("Você tem certeza que deseja zerar os pontos das crianças?");
+
+    if (confirmReset) {
+      try {
+        const response = await api.delete("/reset/all/child");
+        console.log(response.data.message);
+      } catch (error) {
+        console.error("Erro ao zerar as crianças:", error);
+      }
+    } else {
+      console.log("Ação de resetar crianças foi cancelada.");
     }
   }
 
@@ -152,7 +167,7 @@ export function Config() {
               RESETAR PONTOS
             </button>
             <button
-              onClick={resetPoints}
+              onClick={resetChild}
               className={`py-3 rounded-lg bg-red-500 bg-opacity-10 w-[90%] shadow-md hover:bg-opacity-20 transition-all ${darkMode ? "text-gray-300" : "text-gray-900"
                 }`}
             >
