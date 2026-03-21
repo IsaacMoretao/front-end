@@ -11,6 +11,7 @@ import { useUpdateChild } from '../../http/types/useUpdateChild'
 interface Product {
     id: number;
     nome: string;
+    avatar: string;
     idade?: string;
     pontos?: number;
     pointsAdded: number;
@@ -45,7 +46,7 @@ export function MobilleCard({
     const addedPoints = pointsAdded[product.id] || 0;
 
     const toggleMenu = () => setMenuVisible(!menuVisible);
-    const handlePopupOpen = () => setIsPopupOpen(true);
+    // const handlePopupOpen = () => setIsPopupOpen(true);
     const handlePopupClose = () => setIsPopupOpen(false);
 
     // ---------- NOVO: estado do modal de edição ----------
@@ -238,8 +239,15 @@ export function MobilleCard({
                 className={`lg:hidden flex p-4 rounded-lg shadow-md relative my-5 ${darkMode ? "bg-gray-800 text-gray-100" : "bg-white text-gray-900"
                     }`}
             >
+                <img
+                    className="w-36 h-36 rounded-full object-cover mr-5"
+                    src={`${import.meta.env.VITE_BASE_URL}/${product.avatar}`}
+                    alt={product.nome}
+                />
                 <div className="flex flex-col w-full">
+
                     <header className="flex justify-between items-center mb-2">
+
                         <h2 className="font-semibold text-sm truncate whitespace-nowrap max-w-[70%] overflow-hidden">
                             {product.nome}
                         </h2>
@@ -281,7 +289,7 @@ export function MobilleCard({
 
                                                 <button
                                                     onClick={() => {
-                                                        handlePopupOpen();
+                                                        setInfoChartOpen(true);
                                                         setMenuVisible(false);
                                                     }}
                                                     className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"

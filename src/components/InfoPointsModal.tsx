@@ -43,15 +43,16 @@ export function InfoPointsModal<T extends Point = Point>({
   onClose,
   token,
   months = 12,
-  aggregate = 'sum',
+  aggregate = 'count',
   valueField,
 }: InfoPointsModalProps<T>) {
   const theme = useTheme()
 
   const { data, isLoading, isError, error } = useAllPointsByClassId<T>(classId, {
-    enabled: open && Boolean(classId),
+    enabled: open && classId != null,
     token,
   })
+
 
   const { labels, values, total } = React.useMemo(() => {
     const now = new Date()
@@ -62,6 +63,7 @@ export function InfoPointsModal<T extends Point = Point>({
     for (const d of windowDates) buckets.set(normalizeMonthKey(d), 0)
 
     const list = data?.points ?? []
+    console.log(data)
     for (const item of list as any[]) {
       const created = new Date(item.createdAt)
       const key = normalizeMonthKey(new Date(created.getFullYear(), created.getMonth(), 1))
@@ -75,8 +77,12 @@ export function InfoPointsModal<T extends Point = Point>({
     const values = windowDates.map((d) => buckets.get(normalizeMonthKey(d)) ?? 0)
     const total = values.reduce((acc, n) => acc + n, 0)
 
+    console.log("classId recebido:", classId)
+    console.log("open:", open)
+
     return { labels, values, total }
   }, [data?.points, months, aggregate, valueField])
+
 
   return (
     <Modal open={open} onClose={onClose} aria-labelledby="info-pontos-title" aria-describedby="info-pontos-desc">

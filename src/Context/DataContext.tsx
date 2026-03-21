@@ -6,6 +6,7 @@ interface Product {
   id: number;
   nome: string;
   birthDate: string;
+  avatar: string;
   pontos: number;
   pointsAdded: number;
   dateOfBirth: string;

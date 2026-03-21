@@ -26,6 +26,7 @@ interface Product {
   id: number;
   nome: string;
   idade: string; // Data no formato "YYYY-MM-DD"
+  avatarFile?: File;
   pontos: number;
   dateOfBirth: string;
   points: Point[];
@@ -37,6 +38,9 @@ export function Header() {
   const [isEditing, setIsEditing] = useState(false);
   const [currentProduct, setCurrentProduct] = useState<Product | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
+  const [preview, setPreview] = useState<string | null>(null);
+
+
 
   const location = useLocation();
   const path = location.pathname;
@@ -82,7 +86,11 @@ export function Header() {
     return null;
   };
 
-  const handleClose = () => setOpen(false);
+  const handleClose = () => {
+    if (preview) URL.revokeObjectURL(preview);
+    setPreview(null);
+    setOpen(false);
+  };
 
   const handleCreate = () => {
     setCurrentProduct({ id: 0, nome: "", idade: "", dateOfBirth: "", pontos: 0, points: [] });
@@ -107,40 +115,119 @@ export function Header() {
 
 
   const handleSave = async () => {
-    if (currentProduct) {
-      try {
-        const pointsArray: Point[] = Array.isArray(currentProduct.points)
-          ? currentProduct.points
-          : [];
+    if (!currentProduct) return;
 
-        const dateOfBirth = currentProduct.dateOfBirth
-          ? new Date(currentProduct.dateOfBirth)
-          : null;
+    try {
+      const pointsArray: Point[] = Array.isArray(currentProduct.points)
+        ? currentProduct.points
+        : [];
 
-        if (!dateOfBirth || isNaN(dateOfBirth.getTime())) {
-          throw new Error("Data de nascimento inválida.");
-        }
+      const dateOfBirth = currentProduct.dateOfBirth
+        ? new Date(currentProduct.dateOfBirth)
+        : null;
 
-        const productToSave = {
-          ...currentProduct,
-          points: pointsArray,
-          dateOfBirth: dateOfBirth.toISOString().split("T")[0], // Garante formato ISO
-        };
-
-        if (isEditing) {
-          await api.put(`/children/${currentProduct.id}`, productToSave);
-          setProducts((prev) =>
-            prev.map((p) => (p.id === currentProduct.id ? productToSave : p))
-          );
-        } else {
-          const response = await api.post("/children", [productToSave]);
-          setProducts((prev) => [...prev, response.data]);
-        }
-        handleClose();
-      } catch (error) {
-        console.error("Erro ao salvar produto:", error);
+      if (!dateOfBirth || isNaN(dateOfBirth.getTime())) {
+        throw new Error("Data de nascimento inválida.");
       }
+
+      const productToSave = {
+        nome: currentProduct.nome,
+        dateOfBirth: dateOfBirth.toISOString().split("T")[0],
+        points: pointsArray,
+      };
+
+      const formData = new FormData();
+
+      // 👇 Backend espera array
+      formData.append("children", JSON.stringify([productToSave]));
+
+      // 👇 Adiciona imagem se existir
+      if (currentProduct.avatarFile) {
+        formData.append("avatar", currentProduct.avatarFile);
+      }
+
+      if (isEditing) {
+        await api.put(`/children/${currentProduct.id}`, formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+      } else {
+        const response = await api.post("/children", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+
+        setProducts((prev) => [...prev, ...response.data]);
+      }
+
+      handleClose();
+    } catch (error) {
+      console.error("Erro ao salvar criança:", error);
     }
+  };
+
+  const handleImageChange = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const compressed = await resizeImage(file);
+
+    setPreview(URL.createObjectURL(compressed)); // 👈 preview aqui
+
+    setCurrentProduct((prev) =>
+      prev ? { ...prev, avatarFile: compressed } : prev
+    );
+  };
+
+  const resizeImage = (file: File): Promise<File> => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      const reader = new FileReader();
+
+      reader.onload = (e) => {
+        img.src = e.target?.result as string;
+      };
+
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+
+        const size = 500;
+        canvas.width = size;
+        canvas.height = size;
+
+        // central crop
+        const minSide = Math.min(img.width, img.height);
+        const sx = (img.width - minSide) / 2;
+        const sy = (img.height - minSide) / 2;
+
+        ctx?.drawImage(
+          img,
+          sx,
+          sy,
+          minSide,
+          minSide,
+          0,
+          0,
+          size,
+          size
+        );
+
+        canvas.toBlob(
+          (blob) => {
+            if (!blob) return;
+            const compressedFile = new File([blob], file.name, {
+              type: "image/jpeg",
+            });
+            resolve(compressedFile);
+          },
+          "image/jpeg",
+          0.7 // qualidade 70%
+        );
+      };
+
+      reader.readAsDataURL(file);
+    });
   };
 
   return (
@@ -165,7 +252,7 @@ export function Header() {
               </button>
             </div>
           )}
-          {!path.endsWith("/myself") && !path.startsWith("/sala")  && (
+          {!path.endsWith("/myself") && !path.startsWith("/sala") && (
             <Link to="/myself">
               <UserCircle size={36} color="#fff" weight="duotone" />
             </Link>
@@ -185,6 +272,7 @@ export function Header() {
             position: "absolute",
             top: "50%",
             left: "50%",
+            justifyItems: "center",
             transform: "translate(-50%, -50%)",
             width: 400,
             color: `${darkMode ? "#fff" : "#232323"}`,
@@ -197,7 +285,31 @@ export function Header() {
           <Typography id="modal-title" variant="h6" component="h2">
             Criar Criança
           </Typography>
+
+          {preview && (
+            <img
+              src={preview}
+              alt="Preview"
+              style={{ width: 120, height: 120, borderRadius: "50%" }}
+            />
+          )}
+
+          <Button
+            variant="outlined"
+            component="label"
+            sx={{ mt: 2 }}
+          >
+            Selecionar Foto
+            <input
+              type="file"
+              hidden
+              accept="image/*"
+              capture="environment"
+              onChange={handleImageChange}
+            />
+          </Button>
           {currentProduct && (
+
             <Box
               component="form"
               sx={{ mt: 2 }}
