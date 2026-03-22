@@ -241,7 +241,7 @@ export function MobilleCard({
             >
                 <img
                     className="w-36 h-36 rounded-full object-cover mr-5"
-                    src={`${import.meta.env.VITE_BASE_URL}/${product.avatar}`}
+                    src={`${product.avatar}`}
                     alt={product.nome}
                 />
                 <div className="flex flex-col w-full">
