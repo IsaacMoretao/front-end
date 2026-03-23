@@ -45,6 +45,10 @@ function App() {
         <Routes>
           {/* Rota "Relatório" acessível para todos */}
           <Route
+            path="/loader"
+            element={<Loader />}
+          />
+          <Route
             path="/relatorio"
             element={loading ? <Loader /> : <Relatorio />}
           />

@@ -12,6 +12,7 @@
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
+    "@lottiefiles/dotlottie-react": "^0.18.7",
     "@mui/icons-material": "^5.15.12",
     "@mui/material": "^5.18.0",
     "@mui/x-charts": "^8.10.2",

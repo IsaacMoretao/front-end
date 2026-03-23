@@ -1,5 +1,3 @@
-// Class.tsx
-
 import { useEffect, useState } from "react";
 import { api } from "../lib/axios";
 import { TextField } from "@mui/material";
@@ -10,6 +8,7 @@ import { useProductContext } from "../Context/DataContext";
 import { ModalResponse } from "../components/ModalResponse";
 import { MobilleCard } from "../components/CardsChild/mibille";
 import { DesktopCard } from "../components/DesktopCard";
+import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 
 export function Class() {
   const {
@@ -181,6 +180,7 @@ export function Class() {
         >
           <header>
             {products.map((product) => (
+
               <DesktopCard
                 key={product.id}
                 product={product}
@@ -204,7 +204,16 @@ export function Class() {
           dataLength={products.length}
           next={loadMore}
           hasMore={!!hasNextPage}
-          loader={<h4>Loading...</h4>}
+          loader={
+          <figure className={`flex flex-col items-center w-full text-center my-full ${darkMode ? "text-gray-50" : "text-black"}`}>
+            <DotLottieReact
+              src="https://lottie.host/7e2cccb9-8f16-4324-9200-0536c2d4d9f4/HL9xCXAswr.lottie"
+              loop
+              autoplay
+              style={{ width: 80, height: 80 }}
+            />
+            Loading...
+          </figure>}
           scrollThreshold={0.9}
         >
           {products.map((product) => (
