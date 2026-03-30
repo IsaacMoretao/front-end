@@ -148,7 +148,7 @@ export function GetButtonState() {
     <>
         <div onClick={handleBaterPonto} className="link_wrapper">
           <ButtonHover
-            name="Bater ponto"
+            name="marcar presença"
             icon={
               <span className="relative flex justify-center items-center my-2 h-5 w-5">
                 <span className="absolute h-full w-full rounded-full bg-green-400 animate-ping"></span>
