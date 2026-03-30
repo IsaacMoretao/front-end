@@ -39,8 +39,11 @@ export function UserInformation() {
 
       const img = new Image()
       img.onload = () => {
-        if (img.width > 500) {
-          alert("A imagem deve ter no máximo 500px de largura.")
+        if (img.width < 100) {
+          alert("A imagem deve ter no mínimo 100px de largura.")
+          return
+        } else if (img.height < 100) {
+          alert("A imagem deve ter no mínimo 100px de largura.")
           return
         }
 
@@ -77,7 +80,7 @@ export function UserInformation() {
       id: String(userData.id),
       username: userName,
       password: newPassword ? newPassword : undefined,
-      avatar: imageFile, // ← arquivo real sendo enviado
+      avatar: imageFile, 
     }, {
       onSuccess: () => {
         alert("Informações atualizadas com sucesso.")

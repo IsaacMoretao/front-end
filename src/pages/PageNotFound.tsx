@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
-import GirlCrying from "../../assets/girl-crying.png";
 import { useTheme } from "../Context/ThemeContext";
+import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 
 export function PageNotFound() {
   const { darkMode } = useTheme();
@@ -14,8 +14,14 @@ export function PageNotFound() {
             : "text-gray-900 bg-gray-100"
         }`}
       >
-        <img src={GirlCrying} alt="" className="h-32" />
-        <h1 className="text-5xl mb-4">Ops!</h1>
+        <figure className="max-h-64 w-auto">
+          <DotLottieReact
+            src="https://lottie.host/d965a172-848d-4e44-bed3-993f2e6694b5/wWzUQzKfeD.lottie"
+            loop
+            autoplay
+          />
+        </figure>
+        <h1 className="text-5xl mb-4">404 Ops! 404</h1>
         <p className="text-xl mb-8">
           A página que você está procurando não foi encontrada.
         </p>

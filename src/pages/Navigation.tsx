@@ -3,6 +3,7 @@ import { useAuth } from "../Context/AuthProvider";
 import { useTheme } from "../Context/ThemeContext";
 import { ButtonHover } from "../components/ButtonHover";
 import { Coins, HardDrives } from "phosphor-react";
+import { GetButtonState } from "../components/GetButtonState";
 
 export function Navigation() {
   const { darkMode } = useTheme();
@@ -34,19 +35,11 @@ export function Navigation() {
 
         </Link>
 
-        {/* <div className="wrapper">
-          <div className="link_wrapper">
-            <ButtonHover
-              name={"Bater ponto"}
-              icon={
-                <span className="justify-center items-center relative flex m-2 h-5 w-5">
-                  <span className="absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75 animate-ping"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-                </span>
-              }
-              />
-          </div>
-        </div> */}
+        <div className="wrapper">
+        
+          <GetButtonState />
+
+        </div>
 
       </main>
 

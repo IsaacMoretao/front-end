@@ -56,8 +56,6 @@ export function Login() {
         password,
       });
   
-      console.log("Resposta do servidor:", response.data);
-  
       const { token, level, userId, AceesAdmin } = response.data;
   
       const aceesAdmin = AceesAdmin;
