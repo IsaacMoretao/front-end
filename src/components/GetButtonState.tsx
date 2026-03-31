@@ -23,11 +23,11 @@ export function GetButtonState() {
 //   const maxLng = -46.275613
 
   // limites da igreja //
-  const minLat = -23.403107
-  const maxLat = -23.403781
+const minLat = -23.403781
+const maxLat = -23.403107
 
-  const minLng = -46.346058
-  const maxLng = -46.347527
+const minLng = -46.347527
+const maxLng = -46.346058
 
   const margem = 0.0010
 
