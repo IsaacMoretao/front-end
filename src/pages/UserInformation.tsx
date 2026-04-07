@@ -93,7 +93,7 @@ export function UserInformation() {
   }
 
   return (
-    <main className={`flex flex-col items-center lg:ml-16  ${darkMode ? "bg-gray-900" : "bg-gray-100"
+    <main className={`flex py-10 px-5 flex-col items-center lg:ml-16  ${darkMode ? "bg-gray-900" : "bg-gray-100"
       }`}>
       <form className="flex flex-col items-center justify-center w-full" onSubmit={handleSubmit}>
         <div className="w-32 h-32 relative">
