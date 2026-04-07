@@ -16,18 +16,18 @@ export function GetButtonState() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
 
   // limites de casa
-//   const minLat = -23.394077
-//   const maxLat = -23.393976
+  const minLat = Number(import.meta.env.VITE_CHURCH_MIN_LAT)
+  const maxLat = Number(import.meta.env.VITE_CHURCH_MAX_LAT)
 
-//   const minLng = -46.276426
-//   const maxLng = -46.275613
+  const minLng = Number(import.meta.env.VITE_CHURCH_MIN_LNG)
+  const maxLng = Number(import.meta.env.VITE_CHURCH_MAX_LNG)
 
   // limites da igreja //
-const minLat = -23.403781
-const maxLat = -23.403107
+// const minLat = -23.403781
+// const maxLat = -23.403107
 
-const minLng = -46.347527
-const maxLng = -46.346058
+// const minLng = -46.347527
+// const maxLng = -46.346058
 
   const margem = 0.0010
 
@@ -38,19 +38,24 @@ const maxLng = -46.346058
       (position) => {
         const latitude = position.coords.latitude
         const longitude = position.coords.longitude
-
+      
         const dentroDaArea =
           latitude >= minLat - margem &&
           latitude <= maxLat + margem &&
           longitude >= minLng - margem &&
           longitude <= maxLng + margem
-
+      
         setGeoLocale(dentroDaArea)
         setItHit(false)
       },
       () => {
         setGeoLocale(false)
         setItHit(false)
+      },
+      {
+        enableHighAccuracy: false, // 🔥 MAIS RÁPIDO (não usa GPS pesado)
+        timeout: 3000,             // ⏱ evita ficar esperando muito
+        maximumAge: 60000          // ♻️ usa localização em cache (1 min)
       }
     )
   }
@@ -59,12 +64,7 @@ const maxLng = -46.346058
     setItHit(true)
 
     try {
-      const response = await fetch(
-        "https://timeapi.io/api/Time/current/zone?timeZone=America/Sao_Paulo"
-      )
 
-      const data = await response.json()
-      const horarioBrasilia = data.dateTime
 
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -79,13 +79,15 @@ const maxLng = -46.346058
             },
             {
               onSuccess: () => {
-                setSuccessMessage(`Marcação realizada às ${horarioBrasilia}`)
+                setSuccessMessage(`Sua presença foi marcada com sucesso !`)
+                console.log(`Sua presença foi marcada com sucesso !`)
                 setErrorMessage(null)
                 setItHit(false)
               },
 
               onError: (error: any) => {
                 setErrorMessage(error.message || "Erro ao bater ponto")
+                console.log(error.message || "Erro ao bater ponto")
                 setSuccessMessage(null)
                 setItHit(false)
               }
@@ -158,22 +160,27 @@ const maxLng = -46.346058
           />
         </div>
         {errorMessage && (
-          <span className="fixed bottom-15  border border-red-500 lg:bottom-5">
-            <Alert severity="error">
-              <AlertTitle>Erro</AlertTitle>
-              {errorMessage}
-            </Alert>
-          </span>
-
+  <div className="fixed z-50 bottom-20 left-1/2 w-[90%] max-w-md -translate-x-1/2 lg:bottom-6">
+    <Alert
+      severity="error"
+      className="shadow-lg rounded-xl border border-red-500 bg-white dark:bg-zinc-900 dark:text-white"
+    >
+      <AlertTitle className="font-semibold">Erro</AlertTitle>
+      {errorMessage}
+    </Alert>
+  </div>
         )}
-        
+
         {successMessage && (
-        <span className="fixed z-50 bottom-15 border border-green-500 lg:bottom-5">
-            <Alert severity="success">
-              <AlertTitle>Sucesso</AlertTitle>
+          <div className="fixed z-50 bottom-20 left-1/2 w-[90%] max-w-md -translate-x-1/2 lg:bottom-6">
+            <Alert
+              severity="success"
+              className="shadow-lg rounded-xl border border-green-500 bg-white dark:bg-zinc-900 dark:text-white"
+            >
+              <AlertTitle className="font-semibold">Sucesso</AlertTitle>
               {successMessage}
             </Alert>
-          </span>
+          </div>
         )}
     </>
   )

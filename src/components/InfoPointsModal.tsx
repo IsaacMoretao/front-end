@@ -63,7 +63,6 @@ export function InfoPointsModal<T extends Point = Point>({
     for (const d of windowDates) buckets.set(normalizeMonthKey(d), 0)
 
     const list = data?.points ?? []
-    console.log(data)
     for (const item of list as any[]) {
       const created = new Date(item.createdAt)
       const key = normalizeMonthKey(new Date(created.getFullYear(), created.getMonth(), 1))

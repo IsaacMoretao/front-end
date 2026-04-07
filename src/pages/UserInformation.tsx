@@ -5,6 +5,7 @@ import { PencilSimple } from "phosphor-react"
 import { useUpdateUser } from "../http/types/useUpdateUser"
 import { useTheme } from "../Context/ThemeContext";
 import { Skeleton } from "@mui/material";
+import { LastPresences } from "../components/LastPesences"
 
 export function UserInformation() {
   const { state } = useAuth()
@@ -47,8 +48,8 @@ export function UserInformation() {
           return
         }
 
-        setNewImage(result)       // preview
-        setImageFile(file)        // file real para envio
+        setNewImage(result)
+        setImageFile(file)
       }
 
       img.onerror = () => alert("Erro ao carregar a imagem.")
@@ -92,7 +93,7 @@ export function UserInformation() {
   }
 
   return (
-    <main className={`flex items-center lg:ml-16 h-[100vh] ${darkMode ? "bg-gray-900" : "bg-gray-100"
+    <main className={`flex flex-col items-center lg:ml-16  ${darkMode ? "bg-gray-900" : "bg-gray-100"
       }`}>
       <form className="flex flex-col items-center justify-center w-full" onSubmit={handleSubmit}>
         <div className="w-32 h-32 relative">
@@ -145,7 +146,7 @@ export function UserInformation() {
           </>
         )}
 
-        <span className="w-full max-w-md px-4">Mudar senha:</span>
+        <span className={`w-full max-w-md pt-5 px-4 ${darkMode ?  "text-gray-100" :  "text-gray-900"}`}>Mudar senha:</span>
         <input
           type="password"
           placeholder="nova senha"
@@ -161,11 +162,14 @@ export function UserInformation() {
 
         <button
           type="submit"
-          className="mt-4 inline-flex items-center justify-center px-6 py-2 bg-purple-600 text-white font-medium text-sm rounded-lg shadow hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 transition"
+          className="mt-4 inline-flex items-center justify-center px-6 py-2 bg-purple-400 text-white font-medium text-sm rounded-lg shadow hover:bg-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500 transition"
         >
           Salvar
         </button>
+          {state.userId && <LastPresences userId={Number(state.userId)} />}
       </form>
+
+      
     </main>
   )
 }
